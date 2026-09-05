@@ -1,0 +1,22 @@
+# Virtual environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Vector database / generated vector store
+vector_store/
+
+# Raw PDF sources
+data/raw/pdfs/*.pdf
+data/raw/research/*.pdf
+
+# Environment variables / secrets
+.env
+
+# Ignore temporary text files
+*.txt
+
+# But keep requirements.txt
+!requirements.txt

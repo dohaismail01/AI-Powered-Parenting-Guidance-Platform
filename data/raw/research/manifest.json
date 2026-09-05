@@ -1,0 +1,102 @@
+[
+  {
+    "filename": "admin,+العبادسة+والخضري+وأبو+شعبان.pdf",
+    "organization": "IUG Journal of Educational and Psychology Sciences",
+    "title": "بحث للعبادسة والخضري وأبو شعبان (العنوان الكامل غير مؤكد - يُرجى المراجعة اليدوية)",
+    "age_range": null,
+    "topics": ["علوم تربوية ونفسية"],
+    "priority_stars": 3,
+    "license_status": "green",
+    "url": "https://doi.org/10.33976/IUGJEPS.30.3/2022/3"
+  },
+  {
+    "filename": "almnakh_alasry_wlaqth.pdf",
+    "organization": "Journal of Basic Science - جامعة ديالى",
+    "title": "المناخ الأسري وعلاقته بالعمل الدراسي لدى طالبات قسم رياض الأطفال",
+    "age_range": "3-6",
+    "topics": ["المناخ الأسري", "رياض الأطفال", "العمل الدراسي"],
+    "priority_stars": 4,
+    "license_status": "unknown",
+    "url": null
+  },
+  {
+    "filename": "altnbw_bastkhdamat_wsayl.pdf",
+    "organization": "Dirasat: Human and Social Sciences - University of Jordan",
+    "title": "Predicting the use of social media in childcare through parenting styles",
+    "age_range": "0-12",
+    "topics": ["وسائل التواصل الاجتماعي", "رعاية الأطفال", "أساليب المعاملة الوالدية"],
+    "priority_stars": 4,
+    "license_status": "yellow",
+    "url": null
+  },
+  {
+    "filename": "altrbyt_alasryt_lltfl_wfq.pdf",
+    "organization": "Global Libyan Journal - University of Benghazi",
+    "title": "التربية الأسرية للطفل وفق منطلقات التربية الحديثة المعاصرة",
+    "age_range": "0-18",
+    "topics": ["التربية الأسرية", "التربية الحديثة"],
+    "priority_stars": 4,
+    "license_status": "unknown",
+    "url": null
+  },
+  {
+    "filename": "dwr_alasrt_fy_thqyq_alamn.pdf",
+    "organization": "Al-Adab Journal - University of Sharjah",
+    "title": "دور الأسرة في تحقيق الأمن الفكري لدى الأطفال: دراسة اجتماعية",
+    "age_range": "6-12",
+    "topics": ["دور الأسرة", "الأمن الفكري", "الدراسة الاجتماعية"],
+    "priority_stars": 4,
+    "license_status": "unknown",
+    "url": null
+  },
+  {
+    "filename": "jperc,+207-239.pdf",
+    "organization": "مجلة البحوث التربوية والنفسية",
+    "title": "التنشئة الاجتماعية للطفل",
+    "age_range": "0-12",
+    "topics": ["التنشئة الاجتماعية", "مفهوم التنشئة الاجتماعية"],
+    "priority_stars": 4,
+    "license_status": "unknown",
+    "url": null
+  },
+  {
+    "filename": "mkhatr_aladman_alrqmy_ly.pdf",
+    "organization": "Journal of College of Education - University of Mosul",
+    "title": "مخاطر الإدمان الرقمي على العلاقات الأسرية",
+    "age_range": "0-18",
+    "topics": ["الإدمان الرقمي", "العلاقات الأسرية", "المخاطر"],
+    "priority_stars": 3,
+    "license_status": "unknown",
+    "url": null
+  },
+  {
+    "filename": "mwshrat_lght_jsd_alwaldyn.pdf",
+    "organization": "Journal of College of Education - جامعة ديالى",
+    "title": "مؤشرات لغة جسد الوالدين: دراسة تطورية",
+    "age_range": "0-6",
+    "topics": ["لغة الجسد", "التواصل غير اللفظي", "الوالدين"],
+    "priority_stars": 3,
+    "license_status": "unknown",
+    "url": null
+  },
+  {
+    "filename": "trbyt_alatfal_nd_mhmd_qtb.pdf",
+    "organization": "Universitas Darussalam Gontor",
+    "title": "تربية الأطفال عند محمد قطب",
+    "age_range": "0-18",
+    "topics": ["الفكر التربوي الإسلامي", "تربية الأطفال"],
+    "priority_stars": 3,
+    "license_status": "unknown",
+    "url": null
+  },
+  {
+    "filename": "نصائح في تربية الأولاد_11896.pdf",
+    "organization": "غير محدد (عبد الحميد رميته)",
+    "title": "نصائح في تربية الأولاد",
+    "age_range": "0-18",
+    "topics": ["نصائح تربوية عامة"],
+    "priority_stars": 2,
+    "license_status": "unknown",
+    "url": null
+  }
+]

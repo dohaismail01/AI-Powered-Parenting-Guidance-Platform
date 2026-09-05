@@ -1,0 +1,252 @@
+
+[
+  {
+    "filename": "unicef_egypt_positive_parenting_toolkit.pdf",
+    "organization": "UNICEF Egypt",
+    "title": "دليل التربية الإيجابية",
+    "age_range": {
+      "min": 0,
+      "max": 18
+    },
+    "topics": [
+      "التربية الإيجابية",
+      "التأديب الإيجابي",
+      "التواصل مع الأطفال",
+      "الاستماع",
+      "وضع الحدود والقواعد",
+      "الصحة والتغذية",
+      "التعلم وتطوير المهارات",
+      "الدعم الاجتماعي والعاطفي",
+      "حماية الطفل"
+    ],
+    "priority_stars": 5,
+    "license_status": "official_source",
+    "language": "ar",
+    "source_type": "official_guideline",
+    "evidence_level": "A"
+  },
+
+  {
+    "filename": "unicef_egypt_early_childhood_development.pdf",
+    "organization": "UNICEF Egypt",
+    "title": "تنمية الطفولة المبكرة",
+    "age_range": {
+      "min": 0,
+      "max": 6
+    },
+    "topics": [
+      "نمو الطفل",
+      "التطور الاجتماعي والعاطفي",
+      "التطور المعرفي",
+      "اللغة والتواصل",
+      "التعلم واللعب",
+      "تنمية الطفولة المبكرة"
+    ],
+    "priority_stars": 5,
+    "license_status": "official_source",
+    "language": "ar",
+    "source_type": "official_report",
+    "evidence_level": "A"
+  },
+
+  {
+    "filename": "3-CCD-Participant-Manual-ar.pdf",
+    "organization": "UNICEF",
+    "title": "العناية بنماء الطفل - دليل المشارك",
+    "age_range": {
+      "min": 0,
+      "max": 6
+    },
+    "topics": [
+      "نمو الطفل",
+      "التعلم المبكر",
+      "اللعب",
+      "التواصل",
+      "الرعاية المستجيبة",
+      "المهارات الحركية",
+      "المهارات المعرفية",
+      "المهارات الاجتماعية والعاطفية"
+    ],
+    "priority_stars": 5,
+    "license_status": "official_source",
+    "language": "ar",
+    "source_type": "official_guideline",
+    "evidence_level": "A"
+  },
+
+  {
+    "filename": "4-CCD-Counseling-Card-ar.pdf",
+    "organization": "UNICEF",
+    "title": "العناية بنماء الطفل - بطاقات المشورة",
+    "age_range": {
+      "min": 0,
+      "max": 6
+    },
+    "topics": [
+      "الرعاية المستجيبة",
+      "اللعب",
+      "التواصل",
+      "نمو الطفل",
+      "التفاعل بين الوالد والطفل"
+    ],
+    "priority_stars": 4,
+    "license_status": "official_source",
+    "language": "ar",
+    "source_type": "official_guideline",
+    "evidence_level": "A"
+  },
+
+  {
+    "filename": "5-CCD-Facilitator-Notes-ar.pdf",
+    "organization": "UNICEF",
+    "title": "العناية بنماء الطفل - ملاحظات الميسر",
+    "age_range": {
+      "min": 0,
+      "max": 6
+    },
+    "topics": [
+      "تنمية الطفولة المبكرة",
+      "تدريب مقدمي الرعاية",
+      "الرعاية المستجيبة",
+      "اللعب",
+      "التواصل"
+    ],
+    "priority_stars": 3,
+    "license_status": "official_source",
+    "language": "ar",
+    "source_type": "training_material",
+    "evidence_level": "A"
+  },
+
+  {
+    "filename": "6-CCD-Clinical-Practice-ar.pdf",
+    "organization": "UNICEF",
+    "title": "العناية بنماء الطفل - الممارسة السريرية",
+    "age_range": {
+      "min": 0,
+      "max": 6
+    },
+    "topics": [
+      "نمو الطفل",
+      "الرعاية",
+      "التواصل",
+      "التطور المبكر",
+      "الرعاية المستجيبة"
+    ],
+    "priority_stars": 3,
+    "license_status": "official_source",
+    "language": "ar",
+    "source_type": "clinical_guideline",
+    "evidence_level": "A"
+  },
+
+  {
+    "filename": "7-Framework-for-ME-ar.pdf",
+    "organization": "UNICEF",
+    "title": "العناية بنماء الطفل - إطار الرصد والتقييم",
+    "age_range": {
+      "min": 0,
+      "max": 6
+    },
+    "topics": [
+      "تنمية الطفولة المبكرة",
+      "برامج الوالدية",
+      "الرصد والتقييم",
+      "الرعاية المستجيبة"
+    ],
+    "priority_stars": 2,
+    "license_status": "official_source",
+    "language": "ar",
+    "source_type": "framework",
+    "evidence_level": "A"
+  },
+
+  {
+    "filename": "unicef_palestine_parent_education_curriculum.pdf",
+    "organization": "UNICEF State of Palestine",
+    "title": "منهاج تعليم الوالدين",
+    "age_range": {
+      "min": 0,
+      "max": 3
+    },
+    "topics": [
+      "دعم الوالدين",
+      "تنمية الطفولة المبكرة",
+      "الرعاية",
+      "التفاعل الإيجابي",
+      "الممارسات الوالدية",
+      "التواصل بين الوالد والطفل"
+    ],
+    "priority_stars": 5,
+    "license_status": "official_source",
+    "language": "ar",
+    "source_type": "parenting_curriculum",
+    "evidence_level": "A"
+  },
+
+  {
+    "filename": "who_parenting_interventions_guidelines.pdf",
+    "organization": "World Health Organization",
+    "title": "المبادئ التوجيهية بشأن التدخلات الخاصة بالوالدية وتنشئة الأطفال",
+    "age_range": {
+      "min": 0,
+      "max": 17
+    },
+    "topics": [
+      "التدخلات الخاصة بالوالدية",
+      "التربية الإيجابية",
+      "العلاقة بين الوالدين والأبناء",
+      "الوقاية من سوء معاملة الأطفال",
+      "دعم الوالدية"
+    ],
+    "priority_stars": 5,
+    "license_status": "CC BY-NC-SA 3.0 IGO",
+    "language": "ar",
+    "source_type": "official_guideline",
+    "evidence_level": "A"
+  },
+
+  {
+    "filename": "who_food_activity_sleep_standards.pdf",
+    "organization": "World Health Organization",
+    "title": "معايير تناول الطعام الصحي والنشاط البدني والسلوك المقترن بقلة الحركة والنوم",
+    "age_range": {
+      "min": 0,
+      "max": 6
+    },
+    "topics": [
+      "التغذية",
+      "النشاط البدني",
+      "النوم",
+      "السلوك الخامل",
+      "وقت الشاشة"
+    ],
+    "priority_stars": 4,
+    "license_status": "CC BY-NC-SA 3.0 IGO",
+    "language": "ar",
+    "source_type": "official_guideline",
+    "evidence_level": "A"
+  },
+
+  {
+    "filename": "who_infant_young_child_feeding_indicators.pdf",
+    "organization": "World Health Organization",
+    "title": "مؤشرات تقييم ممارسات تغذية الرضع وصغار الأطفال",
+    "age_range": {
+      "min": 0,
+      "max": 5
+    },
+    "topics": [
+      "تغذية الرضع",
+      "تغذية الأطفال الصغار",
+      "التغذية التكميلية",
+      "ممارسات التغذية",
+      "نمو الطفل"
+    ],
+    "priority_stars": 2,
+    "license_status": "CC BY-NC-SA 3.0 IGO",
+    "language": "ar",
+    "source_type": "official_guideline",
+    "evidence_level": "A"
+  }
+]

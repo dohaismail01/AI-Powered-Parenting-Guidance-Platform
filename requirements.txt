@@ -1,0 +1,21 @@
+# Ingestion
+PyMuPDF>=1.24.0
+trafilatura>=1.8.0
+pytesseract>=0.3.10
+Pillow>=10.0.0
+
+# Retrieval
+FlagEmbedding>=1.2.10      # BAAI/bge-m3 embeddings + bge-reranker-v2-m3
+chromadb>=0.5.0
+rank-bm25>=0.2.2
+
+# Generation
+anthropic>=0.34.0
+
+# API
+fastapi>=0.111.0
+uvicorn>=0.30.0
+pydantic>=2.7.0
+
+# NOTE: Tesseract's Arabic language pack is a system package, not pip:
+#   Ubuntu/Debian: sudo apt-get install tesseract-ocr tesseract-ocr-ara

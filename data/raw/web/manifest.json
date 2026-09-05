@@ -1,0 +1,195 @@
+[
+  {
+    "url": "https://www.unicef.org/egypt/ar/parenting-hub",
+    "organization": "UNICEF Egypt",
+    "title": "بوابة التربية",
+    "age_range": "0-18",
+    "topics": [
+      "التربية",
+      "التربية الإيجابية",
+      "نمو الطفل",
+      "التواصل",
+      "الاستماع",
+      "الحدود والقواعد",
+      "السلوك",
+      "التعلم",
+      "الدعم الاجتماعي والعاطفي",
+      "حماية الطفل"
+    ],
+    "priority_stars": 5,
+    "license_status": "official_source"
+  },
+  {
+    "url": "https://www.unicef.org/egypt/ar/raising-younger-children",
+    "organization": "UNICEF Egypt",
+    "title": "تربية الأطفال من سن 7-12 سنة",
+    "age_range": "7-12",
+    "topics": [
+      "السلوك",
+      "الاستماع والتواصل",
+      "احترام الطفل",
+      "التعامل مع السلوك غير المقبول",
+      "القواعد",
+      "التربية الإيجابية"
+    ],
+    "priority_stars": 5,
+    "license_status": "official_source"
+  },
+  {
+    "url": "https://www.unicef.org/egypt/ar/early-moments-matter",
+    "organization": "UNICEF Egypt",
+    "title": "تربية الأطفال من 0-6 سنوات",
+    "age_range": "0-6",
+    "topics": [
+      "تنمية الطفولة المبكرة",
+      "الرعاية",
+      "السلوك",
+      "التواصل",
+      "التربية"
+    ],
+    "priority_stars": 4,
+    "license_status": "official_source"
+  },
+  {
+    "url": "https://www.unicef.org/egypt/ar/caring-caregivers",
+    "organization": "UNICEF Egypt",
+    "title": "العناية بمقدمي الرعاية",
+    "age_range": null,
+    "topics": [
+      "دعم مقدمي الرعاية",
+      "ضغوط الوالدين",
+      "التعامل مع السلوك الصعب",
+      "الرعاية الذاتية لمقدمي الرعاية",
+      "طلب الدعم"
+    ],
+    "priority_stars": 4,
+    "license_status": "official_source"
+  },
+  {
+    "url": "https://www.unicef.org/parenting/ar/%D8%A7%D9%84%D8%AA%D8%B1%D8%A8%D9%8A%D8%A9-%D8%A7%D9%84%D8%B1%D9%82%D9%85%D9%8A%D8%A9",
+    "organization": "UNICEF",
+    "title": "التربية الرقمية / ألعاب الفيديو: دليل للوالدين",
+    "age_range": "0-18",
+    "topics": [
+      "التربية الرقمية",
+      "السلامة على الإنترنت",
+      "الخصوصية",
+      "المحتوى الضار",
+      "سلوك الأطفال على الإنترنت",
+      "الألعاب الإلكترونية",
+      "وقت الشاشة",
+      "عادات اللعب",
+      "إرشادات الوالدين"
+    ],
+    "priority_stars": 5,
+    "license_status": "official_source"
+  },
+  {
+    "url": "https://www.unicef.org/parenting/ar/%D9%86%D9%88%D9%85-%D8%A7%D9%84%D8%A3%D8%B7%D9%81%D8%A7%D9%84/%D8%B1%D8%B9%D8%A7%D9%8A%D8%A9-%D8%A7%D9%84%D8%A3%D8%B7%D9%81%D8%A7%D9%84",
+    "organization": "UNICEF",
+    "title": "نوم الأطفال",
+    "age_range": "0-18",
+    "topics": [
+      "النوم",
+      "روتين وقت النوم",
+      "بيئة النوم",
+      "عادات النوم الصحية"
+    ],
+    "priority_stars": 4,
+    "license_status": "official_source"
+  },
+  {
+    "url": "https://www.unicef.org/mena/ar/%D8%AA%D9%86%D8%B4%D8%A6%D8%A9-%D8%A7%D9%84%D8%A3%D8%B7%D9%81%D8%A7%D9%84-%D9%81%D9%8A-%D8%B9%D8%B5%D8%B1-%D8%A7%D9%84%D8%B0%D9%83%D8%A7%D8%A1-%D8%A7%D9%84%D8%A7%D8%B5%D8%B7%D9%86%D8%A7%D8%B9%D9%8A",
+    "organization": "UNICEF MENA",
+    "title": "تنشئة الأطفال في عصر الذكاء الاصطناعي",
+    "age_range": "0-18",
+    "topics": [
+      "الأطفال والذكاء الاصطناعي",
+      "التكنولوجيا",
+      "السلامة الرقمية",
+      "دور الوالدين"
+    ],
+    "priority_stars": 4,
+    "license_status": "official_source"
+  },
+  {
+    "url": "https://www.unicef.org/parenting/ar/%D8%A3%D9%86%D8%B4%D8%B7%D8%A9-%D8%AF%D9%88%D9%86-%D8%A7%D8%B3%D8%AA%D8%AE%D8%AF%D8%A7%D9%85-%D8%A3%D8%AC%D9%87%D8%B2%D8%A9-%D8%A5%D9%84%D9%83%D8%AA%D8%B1%D9%88%D9%86%D9%8A%D8%A9/%D8%B1%D8%B9%D8%A7%D9%8A%D8%A9-%D8%A7%D9%84%D8%A3%D8%B7%D9%81%D8%A7%D9%84",
+    "organization": "UNICEF",
+    "title": "أنشطة للأطفال دون استخدام أجهزة إلكترونية",
+    "age_range": "1-12",
+    "topics": [
+      "اللعب",
+      "الأنشطة الأسرية",
+      "بدائل وقت الشاشة",
+      "أنشطة للأطفال"
+    ],
+    "priority_stars": 5,
+    "license_status": "official_source"
+  },
+  {
+    "url": "https://www.who.int/ar/health-topics/child-growth",
+    "organization": "WHO",
+    "title": "نمو الطفل",
+    "age_range": "0-18",
+    "topics": [
+      "نمو الطفل",
+      "التطور",
+      "متابعة النمو"
+    ],
+    "priority_stars": 5,
+    "license_status": "official_source"
+  },
+  {
+    "url": "https://www.who.int/ar/news-room/questions-and-answers/item/child-growth-standards",
+    "organization": "WHO",
+    "title": "معايير نمو الطفل",
+    "age_range": "0-5",
+    "topics": [
+      "معايير النمو",
+      "النمو الجسدي",
+      "مؤشرات النمو"
+    ],
+    "priority_stars": 5,
+    "license_status": "official_source"
+  },
+  {
+    "url": "https://www.who.int/ar/publications/b/58711",
+    "organization": "WHO",
+    "title": "معايير تناول الطعام الصحي والنشاط البدني والسلوك المقترن بقلة الحركة والنوم",
+    "age_range": "0-5",
+    "topics": [
+      "النوم",
+      "النشاط البدني",
+      "السلوك الخامل",
+      "وقت الشاشة"
+    ],
+    "priority_stars": 5,
+    "license_status": "CC BY-NC-SA 3.0 IGO"
+  },
+  {
+    "url": "https://www.who.int/ar/news-room/fact-sheets/detail/healthy-diet",
+    "organization": "WHO",
+    "title": "الأكل الصحي للأطفال",
+    "age_range": "0-18",
+    "topics": [
+      "الأكل الصحي",
+      "التغذية",
+      "العادات الغذائية"
+    ],
+    "priority_stars": 4,
+    "license_status": "official_source"
+  },
+  {
+    "url": "https://www.who.int/ar/news-room/fact-sheets/detail/infant-and-young-child-feeding",
+    "organization": "WHO",
+    "title": "تغذية الرضع وصغار الأطفال",
+    "age_range": "0-5",
+    "topics": [
+      "تغذية الرضع",
+      "التغذية التكميلية",
+      "الرضاعة"
+    ],
+    "priority_stars": 2,
+    "license_status": "official_source"
+  }
+]
