@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+
+# Model artifacts / training outputs (large; produced on Kaggle or when serving)
+*.gguf
+*.safetensors
+*.bin
+nile-chat-parenting-lora/
+nile-chat-parenting-gguf/
+*_gguf/
+checkpoint-*/
+
+# Eval outputs (regenerated per run)
+eval_results.json
+eval_outputs.json
+
+# Personal notes (not part of the shipped repo)
+TROUBLESHOOTING.md
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

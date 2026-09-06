@@ -1,0 +1,23 @@
+# =============================================================================
+# Runtime deps to LOAD AND RUN the fine-tuned Nile-Chat parenting model.
+# =============================================================================
+# Scope: just running the model (the deliverable). The RAG pipeline around it
+# (retriever, embeddings, vector store, orchestration, API) is owned by someone
+# else and is intentionally NOT listed here.
+#
+# This is also separate from TRAINING: the Kaggle notebook installs its own
+# stack (unsloth/trl/bitsandbytes) — do not put those here.
+#
+#     python -m venv .venv && .venv\Scripts\activate     (Windows)
+#     pip install -r requirements.txt
+# -----------------------------------------------------------------------------
+
+# ---- Run the GGUF export (q4_k_m) on CPU — the primary, no-GPU path ----------
+llama-cpp-python>=0.3.2      # loads and runs the .gguf; ships prebuilt CPU wheels
+huggingface-hub>=0.25.0      # pull the .gguf (or the adapter) from your HF repo
+
+# ---- Alternative: run the merged 16-bit model with transformers (needs a GPU)
+# Uncomment only if you hand off the HF model instead of the GGUF.
+# transformers>=4.56,<4.58
+# torch>=2.3
+# accelerate>=0.34.0
