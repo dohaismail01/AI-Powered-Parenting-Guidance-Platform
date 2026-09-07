@@ -12,7 +12,7 @@ The problem: parents face everyday challenges — tantrums, discipline, screen t
 
 ## Slide 3 - Architecture
 
-Here's how a question flows. The user speaks or types into the React frontend, which calls the FastAPI backend. Inside the backend: if it's voice, Whisper transcribes it; we build a prompt from the system prompt, few-shot examples and retrieved context; the RAG retriever pulls the top chunks from ChromaDB; and the fine-tuned QLoRA model produces the answer. That text goes back to the frontend, and every exchange is stored per session in Postgres or SQLite.
+Here's how a question flows. The user speaks or types into the React frontend, which calls the FastAPI backend. Inside the backend: if it's voice, Whisper transcribes it; we build a prompt from the system prompt, few-shot examples and retrieved context; the RAG retriever pulls the top chunks from ChromaDB; and the fine-tuned QLoRA model produces the answer. That grounded answer goes back to the frontend and is shown to the parent.
 
 ## Slide 4 - RAG - Knowledge Base
 
