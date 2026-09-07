@@ -59,8 +59,7 @@ class TTSClient:
             cfgw_input=config.TTS_CFGW,
             api_name="/generate_tts_audio",
         )
-        if ref_path:
-            kwargs["audio_prompt_path_input"] = handle_file(ref_path)
+        kwargs["audio_prompt_path_input"] = handle_file(ref_path) if ref_path else None
 
         result_path = self._client.predict(**kwargs)
 
@@ -72,3 +71,4 @@ class TTSClient:
         shutil.copyfile(result_path, out_path)
 
         return TTSResult(audio_path=out_path)
+

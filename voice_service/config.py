@@ -54,3 +54,6 @@ TTS_EXAGGERATION = float(os.getenv("TTS_EXAGGERATION", "0.5"))
 TTS_TEMPERATURE = float(os.getenv("TTS_TEMPERATURE", "0.8"))
 TTS_CFGW = float(os.getenv("TTS_CFGW", "0.5"))
 
+# --- RAG API (teammate's server: retrieval + fine-tuned LLM) ---
+RAG_API_URL = os.getenv("RAG_API_URL", "http://localhost:8000")
+RAG_API_TIMEOUT_SECONDS = float(os.getenv("RAG_API_TIMEOUT_SECONDS", "600"))

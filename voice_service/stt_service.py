@@ -15,6 +15,7 @@ Install deps:
 import asyncio
 import logging
 import time
+import urllib.parse
 import uuid
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, Header, Body
@@ -24,6 +25,7 @@ from fastapi.responses import FileResponse
 import config
 from transcriber import Transcriber
 from tts_client import TTSClient
+from rag_client import RagClient
 
 logging.basicConfig(
     level=getattr(logging, config.LOG_LEVEL, logging.INFO),
@@ -42,23 +44,23 @@ app.add_middleware(
 
 transcriber: Transcriber | None = None
 tts_client: TTSClient | None = None
-# Bounds how many transcriptions run at once, since faster-whisper isn't
-# guaranteed safe for unlimited concurrent calls on a single model instance.
+rag_client: RagClient | None = None
 _transcription_semaphore = asyncio.Semaphore(config.MAX_CONCURRENT_TRANSCRIPTIONS)
 
 
 @app.on_event("startup")
 def startup():
-    global transcriber, tts_client
+    global transcriber, tts_client, rag_client
     transcriber = Transcriber.load()
     try:
         tts_client = TTSClient.load()
     except Exception:
-        # TTS is a bonus feature that depends on a remote Space being up.
-        # Don't let a TTS connection problem take down STT, which is the
-        # core, required part of this service.
         logger.exception("TTS client failed to connect - /tts will be unavailable, /stt still works")
         tts_client = None
+
+    rag_client = RagClient()
+    if not rag_client.health_check():
+        logger.warning("RAG API at %s is not reachable - /ask_voice will be unavailable", config.RAG_API_URL)
 
 
 def _check_api_key(x_api_key: str | None):
@@ -135,9 +137,6 @@ async def text_to_speech(
     text: str = Body(..., embed=True),
     x_api_key: str | None = Header(default=None),
 ):
-    """Generate Egyptian-Arabic speech audio for `text` and return it as
-    a wav file. Uses the NAMAA-Egyptian-Voice Space configured in
-    config.TTS_SPACE_ID."""
     request_id = str(uuid.uuid4())[:8]
     _check_api_key(x_api_key)
 
@@ -176,4 +175,72 @@ def health():
         "language_forced": config.FORCE_LANGUAGE,
         "max_concurrent": config.MAX_CONCURRENT_TRANSCRIPTIONS,
         "tts_available": tts_client is not None,
+        "rag_available": bool(rag_client is not None and rag_client.health_check()),
     }
+
+
+@app.post("/ask_voice")
+async def ask_voice(
+    audio: UploadFile = File(...),
+    x_api_key: str | None = Header(default=None),
+):
+    """
+    Full ParentWise voice pipeline in one call:
+        audio -> STT -> RAG (retrieval + LLM, teammate's server) -> TTS -> audio
+    """
+    request_id = str(uuid.uuid4())[:8]
+    _check_api_key(x_api_key)
+
+    if transcriber is None:
+        raise HTTPException(status_code=503, detail="STT model not loaded yet")
+    if tts_client is None:
+        raise HTTPException(status_code=503, detail="TTS is unavailable")
+    if rag_client is None:
+        raise HTTPException(status_code=503, detail="RAG client not initialized")
+
+    raw = await audio.read()
+    if len(raw) == 0:
+        raise HTTPException(status_code=400, detail="Empty audio upload")
+
+    suffix = _guess_suffix(audio.filename, audio.content_type)
+    async with _transcription_semaphore:
+        try:
+            stt_result = await asyncio.to_thread(transcriber.transcribe_bytes, raw, suffix)
+        except Exception:
+            logger.exception("[%s] STT step failed", request_id)
+            raise HTTPException(status_code=422, detail="Could not process this audio file")
+
+    if not stt_result.text.strip():
+        raise HTTPException(status_code=422, detail="No speech detected in the audio")
+
+    question = stt_result.text
+    logger.info("[%s] STT -> %r", request_id, question)
+
+    try:
+        rag_answer = await asyncio.to_thread(rag_client.ask, question)
+    except Exception:
+        logger.exception("[%s] RAG API call failed", request_id)
+        raise HTTPException(status_code=502, detail="RAG service failed to answer")
+
+    logger.info(
+        "[%s] RAG -> high_risk=%s grounded=%s answer_len=%d",
+        request_id, rag_answer.is_high_risk, rag_answer.is_grounded, len(rag_answer.answer),
+    )
+
+    try:
+        tts_result = await asyncio.to_thread(tts_client.synthesize, rag_answer.answer)
+    except Exception:
+        logger.exception("[%s] TTS step failed", request_id)
+        raise HTTPException(status_code=502, detail="TTS synthesis failed")
+
+    return FileResponse(
+        tts_result.audio_path,
+        media_type="audio/wav",
+        filename="answer.wav",
+        headers={
+            "X-Request-Id": request_id,
+            "X-Transcript": urllib.parse.quote(question),
+            "X-Is-High-Risk": str(rag_answer.is_high_risk).lower(),
+            "X-Is-Grounded": str(rag_answer.is_grounded).lower(),
+        },
+    )

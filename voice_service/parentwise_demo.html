@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>ParentWise - ديمو المساعد الصوتي</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    background: linear-gradient(135deg, #fdf6f0 0%, #f0f4fb 100%);
+    min-height: 100vh;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+    padding: 40px;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+  }
+  h1 {
+    color: #2d3142;
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    color: #9295a6;
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+  .mic-button {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, #6c8ee8, #8a6ce8);
+    color: white;
+    font-size: 44px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 8px 24px rgba(108,142,232,0.35);
+  }
+  .mic-button:hover { transform: scale(1.05); }
+  .mic-button:active { transform: scale(0.96); }
+  .mic-button.recording {
+    background: linear-gradient(135deg, #e86c6c, #e88a6c);
+    box-shadow: 0 0 0 8px rgba(232,108,108,0.15);
+    animation: pulse 1.4s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(232,108,108,0.35); }
+    70% { box-shadow: 0 0 0 18px rgba(232,108,108,0); }
+    100% { box-shadow: 0 0 0 0 rgba(232,108,108,0); }
+  }
+  .status {
+    min-height: 24px;
+    color: #555;
+    font-size: 15px;
+    margin-bottom: 20px;
+  }
+  .status.error { color: #d24b4b; }
+  .status.success { color: #2fa86b; }
+  .step-list {
+    text-align: right;
+    background: #f7f8fc;
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-top: 20px;
+    font-size: 13px;
+    color: #6b6f80;
+  }
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    opacity: 0.4;
+  }
+  .step.active { opacity: 1; font-weight: 600; color: #2d3142; }
+  .step.done { opacity: 1; color: #2fa86b; }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #ccc; flex-shrink: 0;
+  }
+  .step.active .dot { background: #6c8ee8; }
+  .step.done .dot { background: #2fa86b; }
+  .transcript-box {
+    margin-top: 20px;
+    text-align: right;
+    background: #fbf7f0;
+    border-radius: 14px;
+    padding: 16px 20px;
+    font-size: 14px;
+    color: #4a4a4a;
+    display: none;
+  }
+  .transcript-box.show { display: block; }
+  audio { width: 100%; margin-top: 16px; display: none; }
+  audio.show { display: block; }
+  .settings {
+    margin-top: 24px;
+    font-size: 12px;
+    color: #b0b3c0;
+  }
+  .settings input {
+    border: 1px solid #e2e4ec;
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-size: 12px;
+    width: 200px;
+    direction: ltr;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>🎙️ المساعد الصوتي لـ ParentWise</h1>
+  <div class="subtitle">اضغطي على الميكروفون واسألي سؤالك</div>
+
+  <button id="micBtn" class="mic-button">🎤</button>
+
+  <div id="status" class="status">اضغطي للتسجيل</div>
+
+  <div class="step-list" id="steps">
+    <div class="step" id="step1"><span class="dot"></span> تحويل الصوت إلى نص</div>
+    <div class="step" id="step2"><span class="dot"></span> البحث عن إجابة</div>
+    <div class="step" id="step3"><span class="dot"></span> تحويل الإجابة إلى صوت</div>
+  </div>
+
+  <div class="transcript-box" id="transcriptBox">
+    <strong>السؤال:</strong> <span id="transcriptText"></span>
+  </div>
+
+  <audio id="responseAudio" controls></audio>
+
+  <div class="settings">
+    عنوان السيرفر:
+    <input id="serverUrl" type="text" value="http://localhost:8001">
+  </div>
+</div>
+
+<script>
+const micBtn = document.getElementById('micBtn');
+const statusEl = document.getElementById('status');
+const stepsEl = document.getElementById('steps');
+const transcriptBox = document.getElementById('transcriptBox');
+const transcriptText = document.getElementById('transcriptText');
+const responseAudio = document.getElementById('responseAudio');
+const serverUrlInput = document.getElementById('serverUrl');
+
+let mediaRecorder;
+let chunks = [];
+let isRecording = false;
+
+function resetSteps() {
+  ['step1','step2','step3'].forEach(id => {
+    document.getElementById(id).className = 'step';
+  });
+  transcriptBox.classList.remove('show');
+  responseAudio.classList.remove('show');
+}
+
+function setStep(stepNum, state) {
+  const el = document.getElementById('step' + stepNum);
+  el.className = 'step ' + state;
+}
+
+function setStatus(text, type) {
+  statusEl.textContent = text;
+  statusEl.className = 'status' + (type ? ' ' + type : '');
+}
+
+micBtn.addEventListener('click', async () => {
+  if (!isRecording) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      chunks = [];
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = e => chunks.push(e.data);
+      mediaRecorder.onstop = handleRecordingStop;
+      mediaRecorder.start();
+      isRecording = true;
+      micBtn.classList.add('recording');
+      micBtn.textContent = '⏹️';
+      setStatus('جاري التسجيل... اضغطي مرة أخرى للإيقاف');
+      resetSteps();
+    } catch (err) {
+      setStatus('تعذر الوصول للميكروفون: ' + err.message, 'error');
+    }
+  } else {
+    mediaRecorder.stop();
+    mediaRecorder.stream.getTracks().forEach(t => t.stop());
+    isRecording = false;
+    micBtn.classList.remove('recording');
+    micBtn.textContent = '🎤';
+  }
+});
+
+async function handleRecordingStop() {
+  const blob = new Blob(chunks, { type: 'audio/webm' });
+  setStatus('جاري إرسال السؤال...');
+  setStep(1, 'active');
+
+  const serverUrl = serverUrlInput.value.replace(/\/$/, '');
+  const formData = new FormData();
+  formData.append('audio', blob, 'question.webm');
+
+  try {
+    const res = await fetch(serverUrl + '/ask_voice', {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || `خطأ من السيرفر (${res.status})`);
+    }
+
+    setStep(1, 'done');
+    setStep(2, 'done');
+    setStep(3, 'active');
+
+    const transcript = res.headers.get('X-Transcript');
+    if (transcript) {
+      transcriptText.textContent = decodeURIComponent(transcript);
+      transcriptBox.classList.add('show');
+    }
+
+    const audioBlob = await res.blob();
+    const audioUrl = URL.createObjectURL(audioBlob);
+    responseAudio.src = audioUrl;
+    responseAudio.classList.add('show');
+
+    setStep(3, 'done');
+    setStatus('تم! استمعي إلى الرد أدناه ⬇️', 'success');
+
+    responseAudio.play().catch(() => {
+      /* بعض المتصفحات تمنع التشغيل التلقائي - المستخدم يضغط Play يدويًا */
+    });
+
+  } catch (err) {
+    setStatus('حدث خطأ: ' + err.message, 'error');
+    resetSteps();
+  }
+}
+</script>
+
+</body>
+</html>
