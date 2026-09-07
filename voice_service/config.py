@@ -7,6 +7,15 @@ container without code changes.
 """
 import os
 
+# Load variables from a local .env file (sitting next to this file) if present,
+# before anything below reads the environment. No-op if python-dotenv isn't
+# installed or the .env file doesn't exist, so real shell env vars still work.
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
+except ImportError:
+    pass
+
 
 def _bool_env(name: str, default: bool) -> bool:
     val = os.getenv(name)

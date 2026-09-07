@@ -70,7 +70,7 @@ def _get_nile_chat_model():
             model_path=model_path,
             n_ctx=NILE_CHAT_CTX_SIZE,
             n_threads=NILE_CHAT_N_THREADS,
-            n_gpu_layers=0,
+            n_gpu_layers=NILE_CHAT_N_GPU_LAYERS,
             verbose=False,
         )
     return _nile_chat_model
@@ -90,10 +90,13 @@ def _build_gemma_prompt(system: str, user: str) -> str:
 def _generate_with_nile_chat_gguf(system: str, user: str) -> str:
     model = _get_nile_chat_model()
     prompt = _build_gemma_prompt(system, user)
+    # Uses the fine-tuned model's own NILE_CHAT_* sampling settings rather than
+    # the provider-agnostic GENERATION_TEMPERATURE — see config.py for why.
     output = model(
         prompt,
         max_tokens=GENERATION_MAX_TOKENS,
-        temperature=GENERATION_TEMPERATURE,
+        temperature=NILE_CHAT_TEMPERATURE,
+        top_p=NILE_CHAT_TOP_P,
         stop=["<end_of_turn>"],
     )
     return output["choices"][0]["text"].strip()

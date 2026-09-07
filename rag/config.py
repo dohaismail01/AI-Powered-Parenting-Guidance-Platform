@@ -3,6 +3,7 @@ ParentWise — global configuration.
 Centralizes all paths, model names, and tunable pipeline parameters
 so every module reads from one place.
 """
+import os
 from pathlib import Path
  
 # --------------------------------------------------------------------------
@@ -42,7 +43,11 @@ CHUNK_MIN_TOKENS = 60              # merge tiny trailing chunks into previous on
 # BAAI/bge-m3: multilingual, strong on Arabic (MIRACL benchmark), open-source,
 # supports long context (up to 8192 tokens) and dense+sparse+colbert vectors.
 # We use it in dense mode here.
-EMBEDDING_MODEL_NAME = "BAAI/bge-m3"
+# Overridable with EMBEDDING_MODEL_PATH so you can point at an already-downloaded
+# local snapshot. FlagEmbedding snapshot-downloads the *whole* repo for a bare
+# hub id, which drags in a ~2.3 GB ONNX blob the CPU/torch path never loads;
+# giving it a local directory skips that entirely.
+EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_PATH", "BAAI/bge-m3")
 EMBEDDING_DEVICE = "cpu"           # set to "cuda" if a GPU is available
 EMBEDDING_BATCH_SIZE = 16
 EMBEDDING_DIM = 1024
@@ -50,7 +55,9 @@ EMBEDDING_DIM = 1024
 # --------------------------------------------------------------------------
 # Reranker
 # --------------------------------------------------------------------------
-RERANKER_MODEL_NAME = "BAAI/bge-reranker-v2-m3"
+# Same ONNX-blob caveat as EMBEDDING_MODEL_PATH above — point this at a local
+# snapshot directory to skip the unused ONNX download.
+RERANKER_MODEL_NAME = os.getenv("RERANKER_MODEL_PATH", "BAAI/bge-reranker-v2-m3")
 RERANKER_DEVICE = "cpu"
  
 # --------------------------------------------------------------------------

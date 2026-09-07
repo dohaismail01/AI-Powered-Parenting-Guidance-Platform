@@ -12,13 +12,23 @@ Install deps:
     pip install -r requirements.txt
 """
 
+import sys
+
+# gradio_client prints progress lines containing "✔"; on Windows the
+# default console encoding (cp1252) can't encode that character, so /tts died
+# with UnicodeEncodeError. Forcing UTF-8 on our own streams makes the service
+# work without needing PYTHONUTF8=1 set in the environment.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+
 import asyncio
 import logging
 import time
 import urllib.parse
 import uuid
 
-from fastapi import FastAPI, UploadFile, File, HTTPException, Header, Body
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Header, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
@@ -192,45 +202,63 @@ def health():
 
 @app.post("/ask_voice")
 async def ask_voice(
-    audio: UploadFile = File(...),
+    audio: UploadFile | None = File(default=None),
+    text: str | None = Form(default=None),
     x_api_key: str | None = Header(default=None),
 ):
     """
-    Full ParentWise voice pipeline in one call:
+    Full ParentWise pipeline in one call. The question can arrive either
+    spoken or typed - send exactly one of:
         audio -> STT -> RAG (retrieval + LLM, teammate's server) -> TTS -> audio
+        text  ->        RAG                                       -> TTS -> audio
 
-    Returns a wav file of the spoken answer. Metadata about the exchange
-    (transcript, answer text, risk flag, sources) is attached as response
-    headers rather than the body, since the body itself is the audio.
+    Typed questions skip the STT step entirely, so they don't need the
+    Whisper model loaded and come back noticeably faster. Either way the
+    response is a wav file of the spoken answer, with metadata about the
+    exchange (question, risk flag, grounding) attached as response headers
+    rather than the body, since the body itself is the audio.
     """
     request_id = str(uuid.uuid4())[:8]
     _check_api_key(x_api_key)
 
-    if transcriber is None:
-        raise HTTPException(status_code=503, detail="STT model not loaded yet")
+    typed = text.strip() if text else ""
+    has_audio = audio is not None and audio.filename is not None
+    if has_audio and typed:
+        raise HTTPException(status_code=400, detail="Send either audio or text, not both")
+    if not has_audio and not typed:
+        raise HTTPException(status_code=400, detail="Send a question as either audio or text")
+
     if tts_client is None:
         raise HTTPException(status_code=503, detail="TTS is unavailable")
     if rag_client is None:
         raise HTTPException(status_code=503, detail="RAG client not initialized")
 
-    # 1) STT: audio -> text
-    raw = await audio.read()
-    if len(raw) == 0:
-        raise HTTPException(status_code=400, detail="Empty audio upload")
+    # 1) Get the question as text - transcribing it first only if it came in
+    #    as audio. A typed question needs no STT model at all.
+    if typed:
+        question = typed
+        logger.info("[%s] typed question -> %r", request_id, question)
+    else:
+        if transcriber is None:
+            raise HTTPException(status_code=503, detail="STT model not loaded yet")
 
-    suffix = _guess_suffix(audio.filename, audio.content_type)
-    async with _transcription_semaphore:
-        try:
-            stt_result = await asyncio.to_thread(transcriber.transcribe_bytes, raw, suffix)
-        except Exception:
-            logger.exception("[%s] STT step failed", request_id)
-            raise HTTPException(status_code=422, detail="Could not process this audio file")
+        raw = await audio.read()
+        if len(raw) == 0:
+            raise HTTPException(status_code=400, detail="Empty audio upload")
 
-    if not stt_result.text.strip():
-        raise HTTPException(status_code=422, detail="No speech detected in the audio")
+        suffix = _guess_suffix(audio.filename, audio.content_type)
+        async with _transcription_semaphore:
+            try:
+                stt_result = await asyncio.to_thread(transcriber.transcribe_bytes, raw, suffix)
+            except Exception:
+                logger.exception("[%s] STT step failed", request_id)
+                raise HTTPException(status_code=422, detail="Could not process this audio file")
 
-    question = stt_result.text
-    logger.info("[%s] STT -> %r", request_id, question)
+        if not stt_result.text.strip():
+            raise HTTPException(status_code=422, detail="No speech detected in the audio")
+
+        question = stt_result.text
+        logger.info("[%s] STT -> %r", request_id, question)
 
     # 2) RAG: text -> answer (teammate's server does retrieval + LLM + safety)
     try:

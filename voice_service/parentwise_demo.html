@@ -107,6 +107,49 @@
   .transcript-box.show { display: block; }
   audio { width: 100%; margin-top: 16px; display: none; }
   audio.show { display: block; }
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #b0b3c0;
+    font-size: 13px;
+    margin: 24px 0 16px;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e2e4ec;
+  }
+  .ask-row { display: flex; gap: 8px; }
+  .ask-row textarea {
+    flex: 1;
+    border: 1px solid #e2e4ec;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 44px;
+    max-height: 140px;
+  }
+  .ask-row textarea:focus {
+    outline: none;
+    border-color: #6c8ee8;
+  }
+  .send-button {
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #6c8ee8, #8a6ce8);
+    color: #fff;
+    font-size: 15px;
+    font-family: inherit;
+    padding: 0 18px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .send-button:disabled { opacity: 0.5; cursor: default; }
+  .step.skipped { opacity: 0.3; text-decoration: line-through; }
   .settings {
     margin-top: 24px;
     font-size: 12px;
@@ -127,11 +170,18 @@
 
 <div class="card">
   <h1>🎙️ المساعد الصوتي لـ ParentWise</h1>
-  <div class="subtitle">اضغطي على الميكروفون واسألي سؤالك</div>
+  <div class="subtitle">اضغطي على الميكروفون واسألي سؤالك، أو اكتبيه بالأسفل</div>
 
   <button id="micBtn" class="mic-button">🎤</button>
 
   <div id="status" class="status">اضغطي للتسجيل</div>
+
+  <div class="divider">أو اكتبي سؤالك</div>
+
+  <div class="ask-row">
+    <textarea id="questionText" rows="1" placeholder="اكتبي سؤالك هنا..."></textarea>
+    <button id="sendBtn" class="send-button">إرسال</button>
+  </div>
 
   <div class="step-list" id="steps">
     <div class="step" id="step1"><span class="dot"></span> تحويل الصوت إلى نص</div>
@@ -159,6 +209,8 @@ const transcriptBox = document.getElementById('transcriptBox');
 const transcriptText = document.getElementById('transcriptText');
 const responseAudio = document.getElementById('responseAudio');
 const serverUrlInput = document.getElementById('serverUrl');
+const questionInput = document.getElementById('questionText');
+const sendBtn = document.getElementById('sendBtn');
 
 let mediaRecorder;
 let chunks = [];
@@ -208,14 +260,49 @@ micBtn.addEventListener('click', async () => {
   }
 });
 
+function setBusy(busy) {
+  sendBtn.disabled = busy;
+  micBtn.style.pointerEvents = busy ? 'none' : '';
+  micBtn.style.opacity = busy ? 0.5 : 1;
+}
+
 async function handleRecordingStop() {
   const blob = new Blob(chunks, { type: 'audio/webm' });
-  setStatus('جاري إرسال السؤال...');
-  setStep(1, 'active');
-
-  const serverUrl = serverUrlInput.value.replace(/\/$/, '');
   const formData = new FormData();
   formData.append('audio', blob, 'question.webm');
+  await submitQuestion(formData, { typed: false });
+}
+
+sendBtn.addEventListener('click', async () => {
+  const question = questionInput.value.trim();
+  if (!question) {
+    setStatus('اكتبي سؤالك الأول', 'error');
+    return;
+  }
+  resetSteps();
+  const formData = new FormData();
+  formData.append('text', question);
+  await submitQuestion(formData, { typed: true });
+});
+
+// Enter sends, Shift+Enter makes a new line.
+questionInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendBtn.click();
+  }
+});
+
+async function submitQuestion(formData, { typed }) {
+  setBusy(true);
+  setStatus('جاري إرسال السؤال...');
+
+  // A typed question never goes through speech-to-text, so that step is
+  // marked as skipped rather than left looking pending.
+  setStep(1, typed ? 'skipped' : 'active');
+  if (typed) setStep(2, 'active');
+
+  const serverUrl = serverUrlInput.value.replace(/\/$/, '');
 
   try {
     const res = await fetch(serverUrl + '/ask_voice', {
@@ -228,7 +315,7 @@ async function handleRecordingStop() {
       throw new Error(errData.detail || `خطأ من السيرفر (${res.status})`);
     }
 
-    setStep(1, 'done');
+    if (!typed) setStep(1, 'done');
     setStep(2, 'done');
     setStep(3, 'active');
 
@@ -253,8 +340,11 @@ async function handleRecordingStop() {
   } catch (err) {
     setStatus('حدث خطأ: ' + err.message, 'error');
     resetSteps();
+  } finally {
+    setBusy(false);
   }
 }
+
 </script>
 
 </body>
