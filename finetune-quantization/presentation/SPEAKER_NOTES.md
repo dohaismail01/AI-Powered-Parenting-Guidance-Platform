@@ -38,37 +38,37 @@ Component two is fine-tuning. We adapted Nile-Chat-4B with QLoRA: the base model
 
 Then we optimize for deployment. Post-training quantization to GGUF Q4_K_M takes the model from about 8 gigabytes down to 2.5 — roughly three times smaller — and it runs on a laptop CPU at about 9 tokens per second, with no GPU required to serve. Same behaviour, a third of the size, so it runs right next to the RAG stack, anywhere.
 
-## Slide 10 - Prompt Engineering - Router / Generator / Verifier
+## Slide 10 - LLM Evaluation
+
+Now an honest read of the evaluation — 28 rubric-graded held-out questions, where safety-critical items are hard fails, about 67% overall. What worked: warm on-persona tone, correct refusals on several dangerous myths, emergencies routed to a doctor, and it runs on CPU. What we still need to fix is real: a dosage question produced a number, a choking case wasn't escalated, some facts were off, and a few out-of-scope questions got answered. We show the failures, we don't hide them.
+
+## Slide 11 - Prompt Engineering - Router / Generator / Verifier
 
 On the prompt-engineering side, safety is defense-in-depth — the fine-tuned model isn't the only line of defense. First a Router classifies intent with zero-shot, and skips retrieval and generation entirely for medical or out-of-scope questions. Then the Generator uses role, few-shot, and a silent chain-of-thought. Finally an independent Verifier — a separate call, not the model grading itself — checks grounding and safety before anything ships. Three independent checks, each catching what the others miss.
 
-## Slide 11 - Prompt Engineering - Six Techniques
+## Slide 12 - Prompt Engineering - Six Techniques
 
 Zooming in, we use six named prompt-engineering techniques, each doing one job — not stacked for show. Role prompting sets the persona; zero-shot classification drives the router; few-shot examples demonstrate the response shape; chain-of-thought does silent safety and age-fit reasoning; retrieval-grounding restricts answers to the sources; and chain-of-verification double-checks the draft. Together they're the glue between RAG and the fine-tuned model.
 
-## Slide 12 - Reliability Safeguards
+## Slide 13 - Reliability Safeguards
 
 These are the answer-quality guarantees users actually feel. Answers are age-aware, tailored to the child's age. We distinguish evidence from opinion. Medical questions are redirected to a professional. And when the retrieved context isn't enough, the model says so out loud instead of making something up. Safety here isn't a prompt line — it's enforced before generation.
 
-## Slide 13 - Real-World Testing & Results
+## Slide 14 - Prompt Engineering - Real-World Testing
 
 Every fix on this slide came from testing against the real model and real UNICEF data, not assumptions. We validated 5 test categories and found and fixed 3 real bugs. The router first misfired — a ball-sharing question was tagged medical — until we added five few-shot examples. And keyword retrieval pulled irrelevant chunks until we added stopword filtering and an overlap threshold, so now it falls back honestly instead of hallucinating. At the bottom you can see routing working: behavioural gets a grounded answer, medical a clean redirect, out-of-scope is politely declined.
 
-## Slide 14 - Frontend (React RTL Chat)
+## Slide 15 - Frontend (React RTL Chat)
 
 The frontend is a working React chat UI, built right-to-left first — because that's the actual language of the product, down to the sidebar, message alignment and every string. Voice recording uses the browser's MediaRecorder with a live 'listening' state, ready for the STT endpoint. And there's a clean mock-to-real swap point: two isolated functions for chat and transcription, so wiring the real backend touches no UI code.
 
-## Slide 15 - Voice Integration (STT + TTS)
+## Slide 16 - Voice Integration (STT + TTS)
 
 Component three is voice, and it's hands-free by design — parents can ask while their hands are full. Speech-to-text uses faster-whisper, forced to Arabic, with the voice-activity threshold tuned to 1500 milliseconds after testing showed shorter pauses were cutting sentences off. Text-to-speech uses the NAMAA Egyptian voice. It's a standalone FastAPI service wired end-to-end into the RAG and fine-tuned model over HTTP.
 
-## Slide 16 - Voice-to-Voice Pipeline
+## Slide 17 - Voice-to-Voice Pipeline
 
 Put it together and this is the headline result: a full voice-to-voice pipeline. The parent speaks; STT transcribes; RAG plus the fine-tuned Nile-Chat-4B produces a grounded answer; and TTS speaks it back in Egyptian Arabic. This isn't a mock-up — we tested it live, end-to-end.
-
-## Slide 17 - Findings & Evaluation
-
-Now an honest read of the evaluation — 28 rubric-graded held-out questions, where safety-critical items are hard fails, about 67% overall. What worked: warm on-persona tone, correct refusals on several dangerous myths, emergencies routed to a doctor, and it runs on CPU. What we still need to fix is real: a dosage question produced a number, a choking case wasn't escalated, some facts were off, and a few out-of-scope questions got answered. We show the failures, we don't hide them.
 
 ## Slide 18 - Limitations & Future Improvements
 
