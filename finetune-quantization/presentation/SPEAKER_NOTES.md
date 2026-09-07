@@ -22,13 +22,13 @@ Component one is retrieval. Our knowledge base is 944 chunks drawn from 34 real 
 
 Retrieval is hybrid, because neither method alone is enough. Dense BGE-M3 embeddings catch meaning even when the wording differs; BM25 catches exact Arabic terms that embeddings can dilute. We fuse the two with Reciprocal Rank Fusion — no hand-tuned weights — then apply metadata ranking and a cross-encoder reranker, landing on the 8 best chunks for the model. Two retrievers see what one alone would miss.
 
-## Slide 6 - RAG - Safety Gate
-
-Safety is handled before generation, not after. A deterministic gate classifies every query across 7 risk categories. Four are hard-blocked — child abuse, violence, self-harm, and emergencies — and go straight to a safety response with crisis resources, with zero retrieval calls. Medical and mental-health are soft boundaries: we give general information and nudge toward a professional, never a diagnosis. A dangerous question never reaches the model.
-
-## Slide 7 - RAG to Fine-Tuned Model (Context Injection)
+## Slide 6 - RAG to Fine-Tuned Model (Context Injection)
 
 This is the bridge between retrieval and the model. Step one, we formulate the retrieval query; step two, we inject the retrieved chunks into a structured, per-source template; step three, the model generates grounded — using only those sources, and citing them. Crucially, the system prompt starts from the exact base message the model was fine-tuned on, so the RAG rules build on the training instead of fighting it.
+
+## Slide 7 - RAG - Safety Gate
+
+Safety is handled before generation, not after. A deterministic gate classifies every query across 7 risk categories. Four are hard-blocked — child abuse, violence, self-harm, and emergencies — and go straight to a safety response with crisis resources, with zero retrieval calls. Medical and mental-health are soft boundaries: we give general information and nudge toward a professional, never a diagnosis. A dangerous question never reaches the model.
 
 ## Slide 8 - Fine-Tuning (QLoRA)
 
@@ -58,18 +58,18 @@ These are the answer-quality guarantees users actually feel. Answers are age-awa
 
 Every fix on this slide came from testing against the real model and real UNICEF data, not assumptions. We validated 5 test categories and found and fixed 3 real bugs. The router first misfired — a ball-sharing question was tagged medical — until we added five few-shot examples. And keyword retrieval pulled irrelevant chunks until we added stopword filtering and an overlap threshold, so now it falls back honestly instead of hallucinating. At the bottom you can see routing working: behavioural gets a grounded answer, medical a clean redirect, out-of-scope is politely declined.
 
-## Slide 15 - Frontend (React RTL Chat)
-
-The frontend is a working React chat UI, built right-to-left first — because that's the actual language of the product, down to the sidebar, message alignment and every string. Voice recording uses the browser's MediaRecorder with a live 'listening' state, ready for the STT endpoint. And there's a clean mock-to-real swap point: two isolated functions for chat and transcription, so wiring the real backend touches no UI code.
-
-## Slide 16 - Voice Integration (STT + TTS)
+## Slide 15 - Voice Integration (STT + TTS)
 
 Component three is voice, and it's hands-free by design — parents can ask while their hands are full. Speech-to-text uses faster-whisper, forced to Arabic, with the voice-activity threshold tuned to 1500 milliseconds after testing showed shorter pauses were cutting sentences off. Text-to-speech uses the NAMAA Egyptian voice. It's a standalone FastAPI service wired end-to-end into the RAG and fine-tuned model over HTTP.
 
-## Slide 17 - Voice-to-Voice Pipeline
+## Slide 16 - Voice-to-Voice Pipeline
 
 Put it together and this is the headline result: a full voice-to-voice pipeline. The parent speaks; STT transcribes; RAG plus the fine-tuned Nile-Chat-4B produces a grounded answer; and TTS speaks it back in Egyptian Arabic. This isn't a mock-up — we tested it live, end-to-end.
 
-## Slide 18 - Limitations & Future Improvements
+## Slide 17 - Limitations & Future Improvements
 
 To close, the honest limitations. This is not a substitute for professional advice; the safety refusals aren't perfect yet; facts are only as good as the sources; coverage is deliberately narrow; and STT can drift toward formal Arabic while TTS leans on a hosted service. Our roadmap follows directly: expand the safety data, strengthen refusal training, ground all facts through RAG, broaden topics and ages, and upgrade to a dialect-specific STT and a private TTS. A clean, working small system beats an overextended one. Thank you — happy to take questions.
+
+## Slide 18 - Thank You / Q&A
+
+Thank you — we'd love your questions. Quick recap: an Arabic-first parenting assistant that grounds its facts through RAG, answers in a warm fine-tuned Egyptian-Arabic voice, runs on a laptop CPU after quantization, and refuses unsafe or medical questions by design. Happy to go deeper on any component — retrieval, fine-tuning, optimization, prompt engineering, or voice.
