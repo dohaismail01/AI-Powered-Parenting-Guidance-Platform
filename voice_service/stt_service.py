@@ -45,6 +45,8 @@ app.add_middleware(
 transcriber: Transcriber | None = None
 tts_client: TTSClient | None = None
 rag_client: RagClient | None = None
+# Bounds how many transcriptions run at once, since faster-whisper isn't
+# guaranteed safe for unlimited concurrent calls on a single model instance.
 _transcription_semaphore = asyncio.Semaphore(config.MAX_CONCURRENT_TRANSCRIPTIONS)
 
 
@@ -55,11 +57,17 @@ def startup():
     try:
         tts_client = TTSClient.load()
     except Exception:
+        # TTS is a bonus feature that depends on a remote Space being up.
+        # Don't let a TTS connection problem take down STT, which is the
+        # core, required part of this service.
         logger.exception("TTS client failed to connect - /tts will be unavailable, /stt still works")
         tts_client = None
 
     rag_client = RagClient()
     if not rag_client.health_check():
+        # Same principle as TTS: the RAG API is a separate teammate-owned
+        # service. If it's down, /stt and /tts should keep working -
+        # only /ask_voice (which needs all three) becomes unavailable.
         logger.warning("RAG API at %s is not reachable - /ask_voice will be unavailable", config.RAG_API_URL)
 
 
@@ -137,6 +145,9 @@ async def text_to_speech(
     text: str = Body(..., embed=True),
     x_api_key: str | None = Header(default=None),
 ):
+    """Generate Egyptian-Arabic speech audio for `text` and return it as
+    a wav file. Uses the NAMAA-Egyptian-Voice Space configured in
+    config.TTS_SPACE_ID."""
     request_id = str(uuid.uuid4())[:8]
     _check_api_key(x_api_key)
 
@@ -187,6 +198,10 @@ async def ask_voice(
     """
     Full ParentWise voice pipeline in one call:
         audio -> STT -> RAG (retrieval + LLM, teammate's server) -> TTS -> audio
+
+    Returns a wav file of the spoken answer. Metadata about the exchange
+    (transcript, answer text, risk flag, sources) is attached as response
+    headers rather than the body, since the body itself is the audio.
     """
     request_id = str(uuid.uuid4())[:8]
     _check_api_key(x_api_key)
@@ -198,6 +213,7 @@ async def ask_voice(
     if rag_client is None:
         raise HTTPException(status_code=503, detail="RAG client not initialized")
 
+    # 1) STT: audio -> text
     raw = await audio.read()
     if len(raw) == 0:
         raise HTTPException(status_code=400, detail="Empty audio upload")
@@ -216,6 +232,7 @@ async def ask_voice(
     question = stt_result.text
     logger.info("[%s] STT -> %r", request_id, question)
 
+    # 2) RAG: text -> answer (teammate's server does retrieval + LLM + safety)
     try:
         rag_answer = await asyncio.to_thread(rag_client.ask, question)
     except Exception:
@@ -227,6 +244,7 @@ async def ask_voice(
         request_id, rag_answer.is_high_risk, rag_answer.is_grounded, len(rag_answer.answer),
     )
 
+    # 3) TTS: answer text -> speech
     try:
         tts_result = await asyncio.to_thread(tts_client.synthesize, rag_answer.answer)
     except Exception:
@@ -239,6 +257,8 @@ async def ask_voice(
         filename="answer.wav",
         headers={
             "X-Request-Id": request_id,
+            # HTTP headers must be latin-1-safe; Arabic text isn't, so
+            # URL-encode it. Decode with urllib.parse.unquote on the client.
             "X-Transcript": urllib.parse.quote(question),
             "X-Is-High-Risk": str(rag_answer.is_high_risk).lower(),
             "X-Is-Grounded": str(rag_answer.is_grounded).lower(),

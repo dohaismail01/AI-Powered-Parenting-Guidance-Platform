@@ -12,7 +12,6 @@ running a model locally, so:
     config.TTS_SPACE_ID for how to point this at your own duplicated
     Space instead
 """
-
 import logging
 import os
 import shutil
@@ -40,7 +39,7 @@ class TTSClient:
     @classmethod
     def load(cls) -> "TTSClient":
         logger.info("Connecting to TTS Space: %s", config.TTS_SPACE_ID)
-        client = Client(config.TTS_SPACE_ID)
+        client = Client(config.TTS_SPACE_ID, hf_token=os.getenv("HF_TOKEN"))
         logger.info("TTS client ready.")
         return cls(client)
 
@@ -59,16 +58,12 @@ class TTSClient:
             cfgw_input=config.TTS_CFGW,
             api_name="/generate_tts_audio",
         )
+
         kwargs["audio_prompt_path_input"] = handle_file(ref_path) if ref_path else None
 
         result_path = self._client.predict(**kwargs)
 
-        # The Space returns a path in its own temp storage; copy it
-        # somewhere we control so it survives independently and we can
-        # clean it up on our own schedule.
         out_fd, out_path = tempfile.mkstemp(suffix=".wav")
         os.close(out_fd)
         shutil.copyfile(result_path, out_path)
-
         return TTSResult(audio_path=out_path)
-

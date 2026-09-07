@@ -2,6 +2,10 @@
 Client for the teammate's ParentWise RAG API (rag/app.py) — retrieval +
 metadata ranking + reranking + the fine-tuned LLM, all wrapped behind
 a simple POST /ask endpoint on their own server.
+
+Kept as a plain HTTP client (not a Python import of their code) so the
+two teams' services stay independently deployable: their server can
+move, restart, or scale separately from this one.
 """
 
 import logging
