@@ -126,9 +126,13 @@ Two interchangeable UIs, both text-or-voice in and text-or-voice out:
 - **React app** (`voice_service/frontend/`, recommended):
   ```bash
   cd voice_service/frontend
-  npm install && npm run dev      # http://localhost:5173
+  npm install
+  npm run dev            # http://localhost:5173 (or 5174 if 5173 is taken)
   ```
-  It proxies API calls to `:8001` (no CORS) and reuses the `useVoiceRecorder` hook.
+  Run the two commands on separate lines — PowerShell doesn't accept `&&`. The dev
+  server proxies API calls to `127.0.0.1:8001` (no CORS) and reuses the
+  `useVoiceRecorder` hook. **The backends must be running** (`rag` on :8000, voice on
+  :8001) or you'll see `ECONNREFUSED` proxy errors.
 - **Single-file app** — no build step: open `http://localhost:8001/`, served by the
   voice service itself ([`voice_service/parentwise_app.html`](voice_service/parentwise_app.html)).
 
