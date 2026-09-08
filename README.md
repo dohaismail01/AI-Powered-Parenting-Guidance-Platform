@@ -61,7 +61,8 @@ reranks evidence, and generates a grounded Arabic answer with the fine-tuned mod
 ```
 finetune-quantization/   dataset → QLoRA fine-tune → GGUF quantization (see its README)
 rag/                     retrieval + safety + generation API   (see its README)
-voice_service/           STT + TTS orchestration + demo UI
+voice_service/           STT + TTS orchestration + /ask_voice API + single-file web app
+voice_service/frontend/  React (Vite) UI — text/voice in, text/voice out (see its README)
 docs/                    project plan and documentation
 ```
 
@@ -113,29 +114,47 @@ pip install -r requirements.txt
 cp .env.example .env            # then set HF_TOKEN in .env (needed for the TTS Space)
 py -3.11 -m uvicorn stt_service:app --port 8001
 ```
-Endpoints: `/stt`, `/tts`, `/ask_voice` (accepts `audio` **or** `text`), `/health`.
+Endpoints: `/stt`, `/tts`, `/health`, and `/ask_voice` — the one-call pipeline that
+accepts `audio` **or** `text` in and returns **JSON** (`transcript`, `answer`,
+`sources`, risk/grounding flags, and optional base64 `audio` controlled by a `speak`
+flag), so callers can render the answer as text, voice, or both. The service also
+serves a self-contained web app at `GET /`.
 
-### 4. Demo UI
-Open [`voice_service/parentwise_demo.html`](voice_service/parentwise_demo.html) in a
-browser (it calls the voice service on `:8001`). Tap the mic and speak, or type a
-question — you get a spoken, source-cited answer.
+### 4. Frontend
+Two interchangeable UIs, both text-or-voice in and text-or-voice out:
+
+- **React app** (`voice_service/frontend/`, recommended):
+  ```bash
+  cd voice_service/frontend
+  npm install && npm run dev      # http://localhost:5173
+  ```
+  It proxies API calls to `:8001` (no CORS) and reuses the `useVoiceRecorder` hook.
+- **Single-file app** — no build step: open `http://localhost:8001/`, served by the
+  voice service itself ([`voice_service/parentwise_app.html`](voice_service/parentwise_app.html)).
+
+Tap the mic and speak, or type a question — you get a source-cited answer as text
+and/or speech.
 
 ---
 
 ## Performance
 
-Generation runs the 4B GGUF locally. The runtime matters a lot:
+Generation runs the 4B GGUF locally, and the runtime matters a lot:
 
-- **CPU via `llama-cpp-python`** (the default, no extra setup): correct but **slow —
-  on the order of minutes per answer** on a laptop CPU. Fine for batch/offline use,
-  not for a live demo.
-- **GPU / Ollama (recommended for interactive use):** serve the same GGUF through
-  Ollama, which uses the GPU (or an optimized CPU build) and answers in seconds. The
-  fine-tuning side already targets this runtime (`eval/run_eval_ollama.py`).
+- **Ollama** (`nile_chat_ollama`, the default): serves the same GGUF through the local
+  Ollama daemon. **On a working GPU build this answers in seconds.** But where Ollama's
+  bundled CUDA build doesn't match the driver (it can error with `device kernel image
+  is invalid`), set `OLLAMA_NUM_GPU=0` to run on CPU — correct, but back to **~minutes
+  per answer**. A small (4 GB) GPU may also be too tight for the 4B model plus context.
+- **`llama-cpp-python`** (`nile_chat_gguf`): in-process, no daemon, but the prebuilt
+  no-BLAS CPU wheel is **the slowest path — minutes per answer**.
+- **Claude** (`anthropic`): seconds and reliably fluent, but it is *not* the fine-tuned
+  model — use only as a comparison/fallback baseline.
 
-If a live, low-latency experience is needed, run the model with Ollama/GPU rather than
-the pure-CPU `llama-cpp-python` path. Retrieval (BGE-M3 + reranker) is unaffected — it
-uses the GPU automatically when CUDA is available.
+For a snappy live demo you need a working Ollama **GPU** build; otherwise expect
+minutes per answer on CPU. Prompt size dominates CPU latency, so `config.py` keeps the
+context small (`RERANK_TOP_K`, `NILE_CHAT_CTX_SIZE`, `GENERATION_MAX_TOKENS`).
+Retrieval (BGE-M3 + reranker) uses the GPU automatically when CUDA is available.
 
 ## Safety
 

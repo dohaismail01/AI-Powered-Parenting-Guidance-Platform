@@ -2,17 +2,23 @@
 Generation backend + a lightweight post-hoc grounding check.
 
 The provider is pluggable (config.GENERATION_PROVIDER):
-  - "nile_chat_gguf": the fine-tuning team's parenting-tuned model
-    (Nile-Chat-4B + LoRA, GGUF-quantized), run locally on CPU via
-    llama-cpp-python. This is the project's default — it's the model
-    that was actually fine-tuned on this knowledge base, so it should
-    give better-grounded, correctly-toned Egyptian-Arabic answers than
-    a general-purpose model, and it needs no API key or network call
-    at inference time.
+  - "nile_chat_ollama": the project's default. The SAME fine-tuned
+    Nile-Chat-4B GGUF, served through a local Ollama daemon
+    (config.OLLAMA_MODEL). Ollama's optimized kernels are much faster
+    than the plain llama-cpp CPU wheel, and it can offload to GPU where
+    the machine's Ollama CUDA build supports it (config.OLLAMA_NUM_GPU;
+    kept at 0 = CPU on machines whose Ollama GPU build errors). No API
+    key or per-call network egress.
+  - "nile_chat_gguf": the same GGUF run in-process via llama-cpp-python
+    (no external daemon). Correct but slow on a no-BLAS CPU wheel.
   - "anthropic": Claude API, kept as a fallback/comparison baseline —
     useful for sanity-checking retrieval quality independently of the
-    fine-tuned model's behavior.
+    fine-tuned model's behavior. Needs ANTHROPIC_API_KEY.
   - "local_qwen": placeholder for a non-quantized local alternative.
+
+All the nile_chat_* providers serve the model that was actually
+fine-tuned on this knowledge base, so they should give better-grounded,
+correctly-toned Egyptian-Arabic answers than a general-purpose model.
 """
 from __future__ import annotations
 

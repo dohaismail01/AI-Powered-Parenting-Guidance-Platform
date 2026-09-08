@@ -1,0 +1,55 @@
+:root {
+  --bg1: #fdf6f0; --bg2: #f0f4fb; --card: #fff; --ink: #2d3142; --muted: #9295a6;
+  --accent1: #6c8ee8; --accent2: #8a6ce8; --user: #eef1fb; --bot: #f7f3ff;
+  --line: #ececf3; --danger: #e86c6c; --ok: #4caf82;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; color: var(--ink);
+  background: linear-gradient(135deg, var(--bg1), var(--bg2));
+  display: flex; justify-content: center; padding: 16px;
+}
+.app { width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 14px; }
+header { text-align: center; padding-top: 6px; }
+header h1 { margin: 0; font-size: 22px; }
+header p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+.status { font-size: 12px; color: var(--muted); display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
+
+.chat {
+  background: var(--card); border-radius: 20px; box-shadow: 0 14px 40px rgba(0,0,0,.10);
+  padding: 16px; min-height: 220px; max-height: 52vh; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.empty { color: var(--muted); text-align: center; margin: auto; font-size: 14px; line-height: 1.7; }
+.msg { max-width: 88%; padding: 11px 14px; border-radius: 16px; font-size: 15px; line-height: 1.7; white-space: pre-wrap; word-wrap: break-word; }
+.msg.user { align-self: flex-start; background: var(--user); border-bottom-right-radius: 5px; }
+.msg.bot { align-self: flex-end; background: var(--bot); border-bottom-left-radius: 5px; }
+.msg .who { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+.sources { margin-top: 8px; font-size: 12px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 6px; }
+.sources b { color: var(--ink); font-weight: 600; }
+.badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px; margin-inline-start: 6px; }
+.badge.risk { background: #fdeaea; color: var(--danger); }
+.badge.note { background: #fff6e6; color: #b07a1a; }
+audio { width: 100%; margin-top: 8px; }
+.err { color: var(--danger); font-size: 14px; }
+
+.controls { background: var(--card); border-radius: 20px; box-shadow: 0 14px 40px rgba(0,0,0,.10); padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.outrow { display: flex; align-items: center; gap: 14px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+.outrow label { display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
+.inrow { display: flex; gap: 10px; align-items: flex-end; }
+textarea {
+  flex: 1; resize: none; border: 1px solid var(--line); border-radius: 14px; padding: 11px 13px;
+  font: inherit; font-size: 15px; min-height: 48px; max-height: 120px; outline: none; background: #fff; color: var(--ink);
+}
+textarea:focus { border-color: var(--accent1); }
+button { border: none; cursor: pointer; font: inherit; transition: transform .12s, opacity .12s; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+.send { background: linear-gradient(135deg, var(--accent1), var(--accent2)); color: #fff; border-radius: 14px; padding: 0 18px; height: 48px; font-size: 15px; font-weight: 600; }
+.send:not(:disabled):active { transform: scale(.97); }
+.mic { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--accent1), var(--accent2)); color: #fff; font-size: 20px; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+.mic.rec { background: linear-gradient(135deg, var(--danger), #e88a6c); animation: pulse 1.3s infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(232,108,108,.35); } 70% { box-shadow: 0 0 0 12px rgba(232,108,108,0); } 100% { box-shadow: 0 0 0 0 rgba(232,108,108,0); } }
+.hint { font-size: 12px; color: var(--muted); text-align: center; }
+.spinner { width: 16px; height: 16px; border: 2px solid var(--accent1); border-top-color: transparent; border-radius: 50%; display: inline-block; animation: spin .8s linear infinite; vertical-align: middle; }
+@keyframes spin { to { transform: rotate(360deg); } }

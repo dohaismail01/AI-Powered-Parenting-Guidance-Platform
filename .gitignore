@@ -19,4 +19,4 @@ data/raw/research/*.pdf
 *.txt
 
 # But keep requirements.txt
-!requirements.txt
+!requirements.txt.ipynb_checkpoints/
