@@ -24,9 +24,21 @@ from src.query.query_analyzer import QueryAnalysis
 from src.schema import RetrievedChunk
 
 
-def _parse_age_range(age_range: str | None) -> tuple[int, int] | None:
+def _parse_age_range(age_range) -> tuple[int, int] | None:
     if not age_range:
         return None
+    # chunks.json stores some age ranges as {"min": x, "max": y} dicts and
+    # others as "low-high" strings. Chroma-sourced (dense) chunks arrive
+    # pre-stringified by Chunk.metadata(), but BM25 chunks are unpickled with
+    # the original dict form — so handle both here.
+    if isinstance(age_range, dict):
+        low, high = age_range.get("min"), age_range.get("max")
+        if low is None or high is None:
+            return None
+        try:
+            return int(low), int(high)
+        except (ValueError, TypeError):
+            return None
     cleaned = age_range.replace("سنة", "").replace("سنوات", "").strip()
     parts = cleaned.replace("–", "-").split("-")
     try:

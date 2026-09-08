@@ -98,8 +98,14 @@ _FEW_SHOT_ADDITIONS = """\
 أطفال عشان ياخد بالكوا حالة طفلك الصحية والجسدية.
 """
 
+# NOTE: the chain-of-thought and few-shot blocks are intentionally left OUT
+# of the assembled prompt. On the CPU-quantized 4B model they (a) leaked the
+# example content straight into answers (the model parroted example 2 instead
+# of answering) and (b) roughly tripled the prompt token count, which on a
+# no-BLAS CPU build dominates latency. Keeping only base + RAG rules fixes both.
+# _COT_ADDITIONS / _FEW_SHOT_ADDITIONS remain defined above for easy A/B testing.
 SYSTEM_PROMPT = (
-    _BASE_SYSTEM + "\n" + _RAG_ADDITIONS + "\n" + _COT_ADDITIONS + "\n" + _FEW_SHOT_ADDITIONS
+    _BASE_SYSTEM + "\n" + _RAG_ADDITIONS
 )
 
 

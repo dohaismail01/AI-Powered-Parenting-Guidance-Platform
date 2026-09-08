@@ -23,10 +23,11 @@ for _stream in (sys.stdout, sys.stderr):
         _stream.reconfigure(encoding="utf-8", errors="replace")
 
 import asyncio
+import base64
 import logging
 import time
-import urllib.parse
 import uuid
+from pathlib import Path
 
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Header, Body
 from fastapi.middleware.cors import CORSMiddleware
@@ -187,6 +188,17 @@ async def text_to_speech(
     )
 
 
+_APP_HTML = Path(__file__).parent / "parentwise_app.html"
+
+
+@app.get("/")
+def index():
+    """Serve the ParentWise web app (text/voice in, text/voice out) from the
+    same origin as the API, so the browser mic works (secure context) and
+    there are no cross-origin issues."""
+    return FileResponse(_APP_HTML, media_type="text/html")
+
+
 @app.get("/health")
 def health():
     return {
@@ -204,19 +216,21 @@ def health():
 async def ask_voice(
     audio: UploadFile | None = File(default=None),
     text: str | None = Form(default=None),
+    speak: bool = Form(default=True),
     x_api_key: str | None = Header(default=None),
 ):
     """
-    Full ParentWise pipeline in one call. The question can arrive either
-    spoken or typed - send exactly one of:
-        audio -> STT -> RAG (retrieval + LLM, teammate's server) -> TTS -> audio
-        text  ->        RAG                                       -> TTS -> audio
+    Full ParentWise pipeline in one call, supporting text OR voice in and
+    text OR voice out. Send exactly one of `audio` / `text`:
+        audio -> STT -> RAG (retrieval + LLM, teammate's server) -> answer
+        text  ->        RAG                                       -> answer
 
-    Typed questions skip the STT step entirely, so they don't need the
-    Whisper model loaded and come back noticeably faster. Either way the
-    response is a wav file of the spoken answer, with metadata about the
-    exchange (question, risk flag, grounding) attached as response headers
-    rather than the body, since the body itself is the audio.
+    The response is always JSON so the caller always gets the answer *text*
+    (and its sources). When `speak` is true and the TTS Space is up, a
+    base64-encoded wav of the spoken answer is included too, so the frontend
+    can offer text output, voice output, or both. TTS is best-effort: if it
+    fails or is unavailable, the text answer is still returned (with
+    `audio_error` set) rather than failing the whole request.
     """
     request_id = str(uuid.uuid4())[:8]
     _check_api_key(x_api_key)
@@ -228,8 +242,6 @@ async def ask_voice(
     if not has_audio and not typed:
         raise HTTPException(status_code=400, detail="Send a question as either audio or text")
 
-    if tts_client is None:
-        raise HTTPException(status_code=503, detail="TTS is unavailable")
     if rag_client is None:
         raise HTTPException(status_code=503, detail="RAG client not initialized")
 
@@ -272,23 +284,31 @@ async def ask_voice(
         request_id, rag_answer.is_high_risk, rag_answer.is_grounded, len(rag_answer.answer),
     )
 
-    # 3) TTS: answer text -> speech
-    try:
-        tts_result = await asyncio.to_thread(tts_client.synthesize, rag_answer.answer)
-    except Exception:
-        logger.exception("[%s] TTS step failed", request_id)
-        raise HTTPException(status_code=502, detail="TTS synthesis failed")
+    # 3) TTS (optional, best-effort): answer text -> base64 wav. Never fails
+    #    the request - if voice output is unavailable the caller still gets
+    #    the text and can show it / retry the audio.
+    audio_b64 = None
+    audio_error = None
+    if speak:
+        if tts_client is None:
+            audio_error = "TTS is unavailable (failed to connect at startup)"
+        else:
+            try:
+                tts_result = await asyncio.to_thread(tts_client.synthesize, rag_answer.answer)
+                with open(tts_result.audio_path, "rb") as fh:
+                    audio_b64 = base64.b64encode(fh.read()).decode("ascii")
+            except Exception:
+                logger.exception("[%s] TTS step failed", request_id)
+                audio_error = "TTS synthesis failed"
 
-    return FileResponse(
-        tts_result.audio_path,
-        media_type="audio/wav",
-        filename="answer.wav",
-        headers={
-            "X-Request-Id": request_id,
-            # HTTP headers must be latin-1-safe; Arabic text isn't, so
-            # URL-encode it. Decode with urllib.parse.unquote on the client.
-            "X-Transcript": urllib.parse.quote(question),
-            "X-Is-High-Risk": str(rag_answer.is_high_risk).lower(),
-            "X-Is-Grounded": str(rag_answer.is_grounded).lower(),
-        },
-    )
+    return {
+        "request_id": request_id,
+        "transcript": question,
+        "answer": rag_answer.answer,
+        "sources": getattr(rag_answer, "sources", []),
+        "is_high_risk": rag_answer.is_high_risk,
+        "is_grounded": rag_answer.is_grounded,
+        "audio": audio_b64,          # base64 wav, or null
+        "audio_mime": "audio/wav" if audio_b64 else None,
+        "audio_error": audio_error,  # null on success / when speak=false
+    }
