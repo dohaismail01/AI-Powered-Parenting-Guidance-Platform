@@ -151,7 +151,7 @@ def main() -> None:
     print(f'       set RERANKER_MODEL_PATH={rerank_path}')
     print("  2) cd rag && py -3.11 -m uvicorn app:app --port 8000")
     print("  3) cd voice_service && py -3.11 -m uvicorn stt_service:app --port 8001")
-    print("  4) Open voice_service/parentwise_demo.html")
+    print("  4) Open the frontend: voice_service/parentwise_app.html (served at :8001/)")
 
 
 if __name__ == "__main__":
