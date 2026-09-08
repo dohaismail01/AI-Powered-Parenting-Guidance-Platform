@@ -28,6 +28,10 @@ from config import (
     NILE_CHAT_N_THREADS,
     NILE_CHAT_TEMPERATURE,
     NILE_CHAT_TOP_P,
+    OLLAMA_HOST,
+    OLLAMA_MODEL,
+    OLLAMA_NUM_GPU,
+    OLLAMA_TIMEOUT_SECONDS,
 )
 from src.generation.prompt import SYSTEM_PROMPT, build_user_prompt
 from src.query.query_analyzer import QueryAnalysis
@@ -70,7 +74,7 @@ def _get_nile_chat_model():
             model_path=model_path,
             n_ctx=NILE_CHAT_CTX_SIZE,
             n_threads=NILE_CHAT_N_THREADS,
-            n_gpu_layers=0,
+            n_gpu_layers=NILE_CHAT_N_GPU_LAYERS,
             verbose=False,
         )
     return _nile_chat_model
@@ -90,13 +94,48 @@ def _build_gemma_prompt(system: str, user: str) -> str:
 def _generate_with_nile_chat_gguf(system: str, user: str) -> str:
     model = _get_nile_chat_model()
     prompt = _build_gemma_prompt(system, user)
+    # Uses the fine-tuned model's own NILE_CHAT_* sampling settings rather than
+    # the provider-agnostic GENERATION_TEMPERATURE — see config.py for why.
     output = model(
         prompt,
         max_tokens=GENERATION_MAX_TOKENS,
-        temperature=GENERATION_TEMPERATURE,
+        temperature=NILE_CHAT_TEMPERATURE,
+        top_p=NILE_CHAT_TOP_P,
         stop=["<end_of_turn>"],
     )
     return output["choices"][0]["text"].strip()
+
+
+def _generate_with_nile_chat_ollama(system: str, user: str) -> str:
+    """
+    Generate with the same fine-tuned GGUF, but served by Ollama instead of
+    llama-cpp-python. Ollama ships GPU/optimized-CPU builds, so this answers in
+    seconds where the pure-CPU llama-cpp path takes minutes. We send the Gemma
+    prompt we build ourselves with raw=True so Ollama does not re-apply a chat
+    template on top of it — identical formatting to the llama-cpp path.
+    """
+    import requests
+
+    prompt = _build_gemma_prompt(system, user)
+    response = requests.post(
+        f"{OLLAMA_HOST}/api/generate",
+        json={
+            "model": OLLAMA_MODEL,
+            "prompt": prompt,
+            "raw": True,
+            "stream": False,
+            "options": {
+                "temperature": NILE_CHAT_TEMPERATURE,
+                "top_p": NILE_CHAT_TOP_P,
+                "num_predict": GENERATION_MAX_TOKENS,
+                "num_gpu": OLLAMA_NUM_GPU,
+                "stop": ["<end_of_turn>"],
+            },
+        },
+        timeout=OLLAMA_TIMEOUT_SECONDS,
+    )
+    response.raise_for_status()
+    return response.json()["response"].strip()
 
 
 def _generate_with_anthropic(system: str, user: str) -> str:
@@ -127,6 +166,7 @@ def _generate_with_local_qwen(system: str, user: str) -> str:
 
 
 _PROVIDERS = {
+    "nile_chat_ollama": _generate_with_nile_chat_ollama,
     "nile_chat_gguf": _generate_with_nile_chat_gguf,
     "anthropic": _generate_with_anthropic,
     "local_qwen": _generate_with_local_qwen,

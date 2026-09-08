@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ParentWise — مساعد الأهل</title>
+<style>
+  :root{
+    --bg1:#fdf6f0; --bg2:#f0f4fb; --card:#ffffff; --ink:#2d3142; --muted:#9295a6;
+    --accent1:#6c8ee8; --accent2:#8a6ce8; --user:#eef1fb; --bot:#f7f3ff;
+    --line:#ececf3; --danger:#e86c6c; --ok:#4caf82;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:'Segoe UI',Tahoma,Arial,sans-serif;
+    background:linear-gradient(135deg,var(--bg1),var(--bg2)); color:var(--ink);
+    display:flex; justify-content:center; padding:16px;
+  }
+  .app{width:100%; max-width:560px; display:flex; flex-direction:column; gap:14px}
+  header{text-align:center; padding-top:6px}
+  header h1{margin:0; font-size:22px}
+  header p{margin:4px 0 0; color:var(--muted); font-size:13px}
+  .status{font-size:12px; color:var(--muted); display:flex; gap:12px; justify-content:center; flex-wrap:wrap}
+  .dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--muted); margin-inline-end:5px; vertical-align:middle}
+  .dot.on{background:var(--ok)} .dot.off{background:var(--danger)}
+
+  .chat{
+    background:var(--card); border-radius:20px; box-shadow:0 14px 40px rgba(0,0,0,.10);
+    padding:16px; min-height:220px; max-height:52vh; overflow-y:auto;
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .empty{color:var(--muted); text-align:center; margin:auto; font-size:14px; line-height:1.7}
+  .msg{max-width:88%; padding:11px 14px; border-radius:16px; font-size:15px; line-height:1.7; white-space:pre-wrap; word-wrap:break-word}
+  .msg.user{align-self:flex-start; background:var(--user); border-bottom-right-radius:5px}
+  .msg.bot{align-self:flex-end; background:var(--bot); border-bottom-left-radius:5px}
+  .msg .who{font-size:11px; color:var(--muted); margin-bottom:4px}
+  .sources{margin-top:8px; font-size:12px; color:var(--muted); border-top:1px dashed var(--line); padding-top:6px}
+  .sources b{color:var(--ink); font-weight:600}
+  .badge{display:inline-block; font-size:11px; padding:2px 8px; border-radius:20px; margin-inline-start:6px}
+  .badge.risk{background:#fdeaea; color:var(--danger)}
+  .badge.note{background:#fff6e6; color:#b07a1a}
+  audio{width:100%; margin-top:8px}
+
+  .controls{background:var(--card); border-radius:20px; box-shadow:0 14px 40px rgba(0,0,0,.10); padding:14px; display:flex; flex-direction:column; gap:12px}
+  .outrow{display:flex; align-items:center; gap:14px; font-size:13px; color:var(--muted); flex-wrap:wrap}
+  .outrow label{display:flex; align-items:center; gap:6px; cursor:pointer; user-select:none}
+  .inrow{display:flex; gap:10px; align-items:flex-end}
+  textarea{
+    flex:1; resize:none; border:1px solid var(--line); border-radius:14px; padding:11px 13px;
+    font:inherit; font-size:15px; min-height:48px; max-height:120px; outline:none; background:#fff; color:var(--ink);
+  }
+  textarea:focus{border-color:var(--accent1)}
+  button{border:none; cursor:pointer; font:inherit; transition:transform .12s, box-shadow .12s, opacity .12s}
+  button:disabled{opacity:.5; cursor:not-allowed}
+  .send{background:linear-gradient(135deg,var(--accent1),var(--accent2)); color:#fff; border-radius:14px; padding:0 18px; height:48px; font-size:15px; font-weight:600}
+  .send:not(:disabled):active{transform:scale(.97)}
+  .mic{width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,var(--accent1),var(--accent2)); color:#fff; font-size:20px; display:flex; align-items:center; justify-content:center; flex:0 0 auto}
+  .mic.rec{background:linear-gradient(135deg,var(--danger),#e88a6c); animation:pulse 1.3s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(232,108,108,.35)}70%{box-shadow:0 0 0 12px rgba(232,108,108,0)}100%{box-shadow:0 0 0 0 rgba(232,108,108,0)}}
+  .hint{font-size:12px; color:var(--muted); text-align:center}
+  .spinner{width:16px;height:16px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;display:inline-block;animation:spin .8s linear infinite;vertical-align:middle}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .err{color:var(--danger); font-size:13px; text-align:center}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>👶 ParentWise</h1>
+    <p>مساعد ذكي للأهل — اسأل بالكلام أو بالكتابة</p>
+    <div class="status">
+      <span><span id="d-stt" class="dot"></span>التعرف على الصوت</span>
+      <span><span id="d-rag" class="dot"></span>محرّك الإجابات</span>
+      <span><span id="d-tts" class="dot"></span>النطق</span>
+    </div>
+  </header>
+
+  <div id="chat" class="chat">
+    <div class="empty" id="empty">
+      اكتب سؤالك عن تربية طفلك، أو اضغط على الميكروفون وقوله بصوتك.<br>
+      مثال: «ابني عنده ٥ سنين وبيعمل نوبات غضب، أعمل إيه؟»
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="outrow">
+      <span>طريقة الرد:</span>
+      <label><input type="checkbox" id="out-text" checked> نص</label>
+      <label><input type="checkbox" id="out-voice" checked> صوت</label>
+    </div>
+    <div class="inrow">
+      <button id="mic" class="mic" title="اضغط للتسجيل">🎤</button>
+      <textarea id="text" placeholder="اكتب سؤالك هنا…" rows="1"></textarea>
+      <button id="send" class="send">إرسال</button>
+    </div>
+    <div id="hint" class="hint">Enter للإرسال · Shift+Enter لسطر جديد</div>
+  </div>
+</div>
+
+<script>
+const API = ""; // same origin as the voice service (served from :8001)
+const chat = document.getElementById("chat");
+const empty = document.getElementById("empty");
+const textEl = document.getElementById("text");
+const sendBtn = document.getElementById("send");
+const micBtn = document.getElementById("mic");
+const outText = document.getElementById("out-text");
+const outVoice = document.getElementById("out-voice");
+const hint = document.getElementById("hint");
+let busy = false, mediaRecorder = null, chunks = [], recording = false;
+
+// ---- health / status dots ----
+async function refreshHealth(){
+  try{
+    const r = await fetch(API + "/health");
+    const h = await r.json();
+    setDot("d-stt", h.status === "ok");
+    setDot("d-rag", h.rag_available);
+    setDot("d-tts", h.tts_available);
+  }catch(e){ ["d-stt","d-rag","d-tts"].forEach(id=>setDot(id,false)); }
+}
+function setDot(id, on){
+  const el = document.getElementById(id);
+  el.className = "dot " + (on ? "on" : "off");
+}
+
+// ---- chat rendering ----
+function addUser(text){
+  empty.style.display = "none";
+  const m = document.createElement("div");
+  m.className = "msg user";
+  m.innerHTML = `<div class="who">أنت</div>`;
+  m.appendChild(document.createTextNode(text));
+  chat.appendChild(m); chat.scrollTop = chat.scrollHeight;
+  return m;
+}
+function addBot(){
+  const m = document.createElement("div");
+  m.className = "msg bot";
+  m.innerHTML = `<div class="who">ParentWise</div><div class="body"><span class="spinner"></span> بيفكر…</div>`;
+  chat.appendChild(m); chat.scrollTop = chat.scrollHeight;
+  return m;
+}
+function fillBot(m, data){
+  const body = m.querySelector(".body");
+  body.innerHTML = "";
+  let head = "";
+  if(data.is_high_risk) head += `<span class="badge risk">تحويل لمختص</span>`;
+  if(data.is_grounded === false) head += `<span class="badge note">تحقّق من مصدر إضافي</span>`;
+
+  if(outText.checked){
+    const p = document.createElement("div");
+    p.textContent = data.answer || "(لا توجد إجابة)";
+    if(head){ const h=document.createElement("div"); h.innerHTML=head; h.style.marginBottom="6px"; body.appendChild(h);}
+    body.appendChild(p);
+  } else if(head){
+    const h=document.createElement("div"); h.innerHTML=head; body.appendChild(h);
+    const p=document.createElement("div"); p.className="hint"; p.style.textAlign="right";
+    p.textContent="(الرد بالصوت فقط)"; body.appendChild(p);
+  }
+
+  if(data.sources && data.sources.length){
+    const s = document.createElement("div");
+    s.className = "sources";
+    s.innerHTML = "<b>المصادر:</b> " + data.sources.map(x=>escapeHtml(x)).join(" · ");
+    body.appendChild(s);
+  }
+  if(outVoice.checked && data.audio){
+    const au = document.createElement("audio");
+    au.controls = true; au.autoplay = true;
+    au.src = `data:${data.audio_mime||"audio/wav"};base64,${data.audio}`;
+    body.appendChild(au);
+  } else if(outVoice.checked && data.audio_error){
+    const w = document.createElement("div"); w.className="hint"; w.style.textAlign="right";
+    w.textContent = "⚠️ تعذّر إنشاء الصوت — " + data.audio_error; body.appendChild(w);
+  }
+  chat.scrollTop = chat.scrollHeight;
+}
+function botError(m, msg){
+  m.querySelector(".body").innerHTML = `<span class="err">⚠️ ${escapeHtml(msg)}</span>`;
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+
+// ---- submit (shared by text + voice) ----
+async function submit({text=null, audioBlob=null}){
+  if(busy) return;
+  if(!outText.checked && !outVoice.checked){ outText.checked = true; }
+  busy = true; setBusy(true);
+
+  const label = text ? text : "🎤 (رسالة صوتية)";
+  addUser(label);
+  const bot = addBot();
+
+  const fd = new FormData();
+  if(text) fd.append("text", text);
+  if(audioBlob) fd.append("audio", audioBlob, "input.webm");
+  fd.append("speak", outVoice.checked ? "true" : "false");
+
+  const started = Date.now();
+  const timer = setInterval(()=>{
+    const s = Math.floor((Date.now()-started)/1000);
+    const b = bot.querySelector(".body");
+    if(b) b.innerHTML = `<span class="spinner"></span> بيفكر… (${s} ث)`;
+  }, 1000);
+
+  try{
+    const r = await fetch(API + "/ask_voice", { method:"POST", body: fd });
+    clearInterval(timer);
+    if(!r.ok){
+      let d; try{ d = await r.json(); }catch{ d = {}; }
+      botError(bot, d.detail || ("خطأ " + r.status));
+    } else {
+      const data = await r.json();
+      // if voice input, show what was transcribed on the user bubble
+      if(audioBlob && data.transcript){
+        const u = bot.previousSibling;
+        if(u && u.classList.contains("user")){
+          u.innerHTML = `<div class="who">أنت (صوت)</div>`;
+          u.appendChild(document.createTextNode(data.transcript));
+        }
+      }
+      fillBot(bot, data);
+    }
+  }catch(e){
+    clearInterval(timer);
+    botError(bot, "تعذّر الاتصال بالخادم");
+  }finally{
+    busy = false; setBusy(false); textEl.value=""; autosize();
+  }
+}
+function setBusy(b){
+  sendBtn.disabled = b; micBtn.disabled = b && !recording; textEl.disabled = b;
+}
+
+// ---- text input ----
+sendBtn.addEventListener("click", ()=>{
+  const t = textEl.value.trim();
+  if(t) submit({text:t});
+});
+textEl.addEventListener("keydown", e=>{
+  if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); sendBtn.click(); }
+});
+function autosize(){ textEl.style.height="auto"; textEl.style.height=Math.min(textEl.scrollHeight,120)+"px"; }
+textEl.addEventListener("input", autosize);
+
+// ---- voice input ----
+micBtn.addEventListener("click", async ()=>{
+  if(busy && !recording) return;
+  if(!recording){
+    try{
+      const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+      mediaRecorder = new MediaRecorder(stream);
+      chunks = [];
+      mediaRecorder.ondataavailable = e=>{ if(e.data.size>0) chunks.push(e.data); };
+      mediaRecorder.onstop = ()=>{
+        stream.getTracks().forEach(t=>t.stop());
+        const blob = new Blob(chunks, {type:"audio/webm"});
+        if(blob.size>0) submit({audioBlob:blob});
+      };
+      mediaRecorder.start();
+      recording = true; micBtn.classList.add("rec"); micBtn.textContent="⏹";
+      hint.textContent = "بيسجّل… اضغط لإيقاف التسجيل والإرسال";
+    }catch(e){
+      hint.textContent = "تعذّر الوصول للميكروفون — تأكد من الإذن ومن فتح الصفحة عبر localhost";
+    }
+  } else {
+    recording = false; micBtn.classList.remove("rec"); micBtn.textContent="🎤";
+    hint.textContent = "Enter للإرسال · Shift+Enter لسطر جديد";
+    if(mediaRecorder && mediaRecorder.state!=="inactive") mediaRecorder.stop();
+  }
+});
+
+refreshHealth();
+setInterval(refreshHealth, 15000);
+</script>
+</body>
+</html>
