@@ -9,6 +9,14 @@ async function getHealth() {
   return r.json();
 }
 
+// One-tap starter questions so users don't have to type Arabic.
+const EXAMPLES = [
+  "ابني عنده ٥ سنين وبيعمل نوبات غضب، أعمل إيه؟",
+  "بنتي عندها سنتين مش عايزة تنام بالليل",
+  "إزاي أعلّم ابني يسمع الكلام من غير ضرب؟",
+  "قد إيه وقت الموبايل المناسب لطفل عنده ٤ سنين؟",
+];
+
 function StatusDots({ health }) {
   const dot = (on) => ({
     display: "inline-block",
@@ -42,7 +50,14 @@ function Message({ msg }) {
     <div className={"msg " + msg.role}>
       <div className="who">{msg.role === "user" ? (msg.voice ? "أنت (صوت)" : "أنت") : "ParentWise"}</div>
       {msg.pending ? (
-        <div className="body"><span className="spinner" /> بيفكر… ({msg.elapsed} ث)</div>
+        <div className="body">
+          <span className="spinner" /> بيجهّز إجابة مدعومة بالمصادر… <b>{msg.elapsed} ث</b>
+          {msg.elapsed >= 8 && (
+            <div className="hint" style={{ textAlign: "right", marginTop: 4 }}>
+              على الجهاز ده الإجابة ممكن تاخد دقيقة أو اتنين — استنّى شوية 🙏
+            </div>
+          )}
+        </div>
       ) : msg.error ? (
         <div className="err">⚠️ {msg.error}</div>
       ) : (
@@ -175,8 +190,15 @@ export default function App() {
       <div className="chat" ref={chatRef}>
         {messages.length === 0 ? (
           <div className="empty">
-            اكتب سؤالك عن تربية طفلك، أو اضغط على الميكروفون وقوله بصوتك.<br />
-            مثال: «ابني عنده ٥ سنين وبيعمل نوبات غضب، أعمل إيه؟»
+            <div className="empty-lead">👋 اسأل عن أي حاجة في تربية طفلك — بالكتابة أو بالصوت.</div>
+            <div className="empty-sub">تقدر تجرّب سؤال من دول:</div>
+            <div className="chips">
+              {EXAMPLES.map((q, i) => (
+                <button key={i} className="chip" onClick={() => submit({ text: q })} disabled={busy}>
+                  {q}
+                </button>
+              ))}
+            </div>
           </div>
         ) : (
           messages.map((m) => <Message key={m.id} msg={m} />)
@@ -188,6 +210,11 @@ export default function App() {
           <span>طريقة الرد:</span>
           <label><input type="checkbox" checked={outText} onChange={(e) => setOutText(e.target.checked)} /> نص</label>
           <label><input type="checkbox" checked={outVoice} onChange={(e) => setOutVoice(e.target.checked)} /> صوت</label>
+          {messages.length > 0 && (
+            <button className="clear" onClick={() => setMessages([])} disabled={busy} style={{ marginInlineStart: "auto" }}>
+              🗑 مسح المحادثة
+            </button>
+          )}
         </div>
         <div className="inrow">
           <button
