@@ -49,7 +49,9 @@ function Message({ msg }) {
   return (
     <div className={"msg " + msg.role}>
       <div className="who">{msg.role === "user" ? (msg.voice ? "أنت (صوت)" : "أنت") : "ParentWise"}</div>
-      {msg.pending ? (
+      {msg.role === "user" ? (
+        <div className="body">{msg.text}</div>
+      ) : msg.pending ? (
         <div className="body">
           <span className="spinner" /> بيجهّز إجابة مدعومة بالمصادر… <b>{msg.elapsed} ث</b>
           {msg.elapsed >= 8 && (
@@ -115,6 +117,7 @@ export default function App() {
     const speak = outVoice;
     const showText = outText || !outVoice; // never render an empty bubble
     setBusy(true);
+    setText(""); // clear the input immediately, not after the (slow) response
 
     const userId = Date.now() + "-u";
     const botId = Date.now() + "-b";
